@@ -1,14 +1,19 @@
 pub mod contracts {
+    pub mod core;
+    pub mod factory;
 }
 pub mod interfaces {
-    pub mod imember_manager;
-    pub mod iorg_manager;
+    pub mod member;
+    pub mod organization;
 }
 
 pub mod components {
-    pub mod member_manager;
+    pub mod member;
+    pub mod organization;
+    pub mod transaction;
 }
 
 pub mod structs {
-    pub mod member_structs;
+    pub mod config;
+    pub mod member;
 }
