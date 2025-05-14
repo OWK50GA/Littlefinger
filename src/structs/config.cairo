@@ -26,7 +26,7 @@ pub enum PaymentType {
 
 // Only if Stream, retrieve the stream details
 #[derive(Drop, Copy, Serde, Default)]
-pub struct StreamDetails {// init stream details
+pub struct StreamDetails { // init stream details
 }
 
 #[starknet::storage_node]

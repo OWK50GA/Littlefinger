@@ -2,13 +2,13 @@
 pub mod MemberManagerComponent {
     // use starknet::storage::StorageMapReadAccess;
     use core::num::traits::Zero;
-    use starknet::{ContractAddress, get_caller_address, get_block_timestamp, get_contract_address};
     use littlefinger::interfaces::member::IMemberManager;
     use littlefinger::structs::member::{Member, MemberRole, MemberStatus};
     use starknet::storage::{
         Map, StorageMapReadAccess, StoragePathEntry, StoragePointerReadAccess,
         StoragePointerWriteAccess,
     };
+    use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
 
     #[storage]
     pub struct Storage {

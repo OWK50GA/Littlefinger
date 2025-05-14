@@ -11,7 +11,7 @@ pub mod OrganizationComponent {
     #[storage]
     pub struct Storage {
         pub owner: ContractAddress,
-        pub commitee: Map<ContractAddress, u16>,    // address -> level of power
+        pub commitee: Map<ContractAddress, u16>, // address -> level of power
         pub config: CoreConfigNode,
     }
 
@@ -24,8 +24,7 @@ pub mod OrganizationComponent {
             ref self: ComponentState<TContractState>,
             add: Array<ContractAddress>,
             subtract: Array<ContractAddress>,
-        ) {
-            // any one subtracted, power would be taken down to zero.
+        ) {// any one subtracted, power would be taken down to zero.
         }
     }
 
