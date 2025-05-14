@@ -1,13 +1,14 @@
 #[starknet::component]
 pub mod MemberManagerComponent {
+    // use starknet::storage::StorageMapReadAccess;
     use core::num::traits::Zero;
-    use salzstark::interfaces::member::IMemberManager;
-    use salzstark::structs::member::{Member, MemberRole, MemberStatus};
+    use starknet::{ContractAddress, get_caller_address, get_block_timestamp, get_contract_address};
+    use littlefinger::interfaces::member::IMemberManager;
+    use littlefinger::structs::member::{Member, MemberRole, MemberStatus};
     use starknet::storage::{
         Map, StorageMapReadAccess, StoragePathEntry, StoragePointerReadAccess,
         StoragePointerWriteAccess,
     };
-    use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
 
     #[storage]
     pub struct Storage {
@@ -108,7 +109,7 @@ pub mod MemberManagerComponent {
             let member_count: u256 = self.member_count.read().into();
             let mut members: Array<Member> = array![];
             for i in 1..member_count {
-                let current_member = self.members.read(i);
+                let current_member = self.members.entry(i).read();
                 members.append(current_member);
             }
 
