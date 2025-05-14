@@ -1,9 +1,15 @@
 use starknet::ContractAddress;
 
-#[derive(Drop, Copy, PartialEq, Serde, Debug, Default)]
-pub struct CoreConfig {}
+#[derive(Drop, Copy, PartialEq, Serde, Default)]
+pub struct CoreConfigParams {
+    pub visibility: Option<Visibility>,
+}
 
-#[derive(Drop, Copy, PartialEq, Default)]
+#[starknet::storage_node]
+pub struct CoreConfig {
+}
+
+#[derive(Drop, Copy, Serde, PartialEq, Default)]
 pub enum Visibility {
     #[default]
     Public,
@@ -29,8 +35,15 @@ pub enum PaymentType {
 pub struct StreamDetails { // init stream details
 }
 
+#[derive(Drop, Copy, Serde, Default, PartialEq)]
+pub struct PollConfigParams {
+
+}
+
 #[starknet::storage_node]
-pub struct CoreConfigNode {}
+pub struct PollConfig {
+
+}
 
 pub fn get_default_stream_details() -> StreamDetails {
     Default::default()
