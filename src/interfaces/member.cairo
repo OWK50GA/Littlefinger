@@ -1,4 +1,4 @@
-use salzstark::structs::member::{Member, MemberRole};
+use littlefinger::structs::member::{Member, MemberRole};
 // use starknet::ContractAddress;
 
 #[starknet::interface]
