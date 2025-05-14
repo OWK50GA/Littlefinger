@@ -9,7 +9,8 @@ pub struct Member {
     pub id: u256,
     pub address: ContractAddress,
     pub status: MemberStatus,
-    // pub allocation_weight: u256, -> This will be contained in the struct for each of the member roles, that is what we will do
+    // pub allocation_weight: u256, -> This will be contained in the struct for each of the member
+    // roles, that is what we will do
     pub pending_allocations: Option<u256>,
     pub total_received: Option<u256>,
     pub last_disbursement_timestamp: Option<u64>,
@@ -19,12 +20,13 @@ pub struct Member {
 
 #[derive(Copy, Drop, Serde, PartialEq, Debug, starknet::Store)]
 pub enum MemberRole {
-    // These variants of the member role enum will not just be variants very soon, each of them will have their own
-    // structs, and your role in the company will mean much in your weight for governance, and your disbursement powers
+    // These variants of the member role enum will not just be variants very soon, each of them will
+    // have their own structs, and your role in the company will mean much in your weight for
+    // governance, and your disbursement powers
     #[default]
     EMPLOYEE,
     ADMIN,
-    CONTRACTOR
+    CONTRACTOR,
 }
 
 #[derive(Copy, Drop, Serde, PartialEq, Debug, starknet::Store)]
@@ -34,5 +36,5 @@ pub enum MemberStatus {
     ACTIVE,
     SUSPENDED,
     PROBATION,
-    REMOVED
+    REMOVED,
 }
