@@ -1,19 +1,19 @@
 #[starknet::component]
 pub mod MemberManagerComponent {
-    use starknet::storage::StorageMapReadAccess;
-use core::num::traits::Zero;
-use starknet::{ContractAddress, get_caller_address, get_block_timestamp, get_contract_address};
-    use salzstark::interfaces::imember_manager::IManageMembers;
-    use salzstark::structs::member_structs::{Member, MemberRole, MemberStatus};
+    // use starknet::storage::StorageMapReadAccess;
+    use core::num::traits::Zero;
+    use starknet::{ContractAddress, get_caller_address, get_block_timestamp, get_contract_address};
+    use littlefinger::interfaces::imember_manager::IManageMembers;
+    use littlefinger::structs::member_structs::{Member, MemberRole, MemberStatus};
     use starknet::storage::{
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess
     };
 
     #[storage]
     struct Storage {
-        admins: Map<u256, Member>, //Map <Member-id, Member>
+        admins: Map::<u256, Member>, //Map <Member-id, Member>
         admin_count: u64,
-        members: Map<u256, Member>, //map for all members
+        members: Map::<u256, Member>, //map for all members
         member_count: u64
     }
 
@@ -95,7 +95,7 @@ use starknet::{ContractAddress, get_caller_address, get_block_timestamp, get_con
             let member_count: u256 = self.member_count.read().into();
             let mut members: Array<Member> = array![];
             for i in 1..member_count {
-                let current_member = self.members.read(i);
+                let current_member = self.members.entry(i).read();
                 members.append(current_member);
             }
             
