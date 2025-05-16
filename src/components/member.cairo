@@ -24,6 +24,7 @@ pub mod MemberManagerComponent {
     > of IMemberManager<ComponentState<TContractState>> {
         fn register(
             ref self: ComponentState<TContractState>,
+            address: ContractAddress,
             fname: felt252,
             lname: felt252,
             alias: felt252,

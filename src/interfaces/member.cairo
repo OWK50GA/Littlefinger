@@ -4,7 +4,7 @@ use littlefinger::structs::member::{Member, MemberRole};
 #[starknet::interface]
 pub trait IMemberManager<TContractState> {
     fn register(
-        ref self: TContractState, fname: felt252, lname: felt252, alias: felt252, role: MemberRole,
+        ref self: TContractState, address: ContractAddress, fname: felt252, lname: felt252, alias: felt252, role: MemberRole,
         // weight: u256
     ) -> u256;
     fn update_member_details(

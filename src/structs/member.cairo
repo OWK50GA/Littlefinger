@@ -1,6 +1,7 @@
 use starknet::ContractAddress;
+use super::base::ContractAddressDefault;
 
-#[derive(Copy, Drop, Serde, PartialEq, starknet::Store)]
+#[derive(Copy, Drop, Serde, Default, PartialEq, starknet::Store)]
 pub struct Member {
     pub fname: felt252,
     pub lname: felt252,
@@ -18,18 +19,50 @@ pub struct Member {
     pub reg_time: u64,
 }
 
-#[derive(Copy, Drop, Serde, PartialEq, Debug, starknet::Store)]
+#[derive(Copy, Drop, Serde, PartialEq, Default, starknet::Store)]
 pub enum MemberRole {
     // These variants of the member role enum will not just be variants very soon, each of them will
     // have their own structs, and your role in the company will mean much in your weight for
     // governance, and your disbursement powers
     #[default]
-    EMPLOYEE,
-    ADMIN,
-    CONTRACTOR,
+    None,
+    EMPLOYEE: u16,
+    ADMIN: u16,
+    CONTRACTOR: u16,
 }
 
-#[derive(Copy, Drop, Serde, PartialEq, Debug, starknet::Store)]
+// subject to change, but hard coded for now
+// may be subject to customization
+const CONTRACTOR: u16 = 1;
+const EMPLOYEE: u16 = 3;
+const ADMIN: u16 = 20;
+
+
+/// For voting purposes, a trait to convert Role to Voting Power
+impl MemberRoleIntoU16 of Into<MemberRole, u16> {
+    #[inline(always)]
+    fn into(self: MemberRole) -> u16 {
+        match self {
+            MemberRole::EMPLOYEE(val) => EMPLOYEE * val,
+            MemberRole::ADMIN(val) => ADMIN * val,
+            MemberRole::CONTRACTOR(val) => CONTRACTOR * val,
+            _ => 0
+        }
+    }
+}
+
+#[generate_trait]
+pub impl MemberImpl of MemberTrait {
+    fn is_member(self: @Member) -> bool {
+        true
+    }
+    fn is_verified(self: @Member) -> bool {
+        true
+    }
+}
+
+
+#[derive(Copy, Drop, Serde, Default, PartialEq, starknet::Store)]
 pub enum MemberStatus {
     #[default]
     UNVERIFIED,

@@ -19,13 +19,6 @@ pub struct Poll {
     pub status: PollStatus,
 }
 
-pub impl ContractAddressDefault of Default<ContractAddress> {
-    #[inline(always)]
-    fn default() -> ContractAddress {
-        Zero::zero()
-    }
-}
-
 #[generate_trait]
 pub impl PollImpl of PollTrait {
     fn resolve(ref self: Poll) {
