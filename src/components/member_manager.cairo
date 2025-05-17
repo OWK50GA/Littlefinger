@@ -133,21 +133,10 @@ pub mod MemberManagerComponent {
             let caller = get_caller_address();
             let id: u256 = (self.member_count.read() + 1).into();
             assert(!caller.is_zero(), 'Zero Address Caller');
+
             let reg_time = get_block_timestamp();
-            let new_admin = Member {
-                fname,
-                lname,
-                alias,
-                role: MemberRole::ADMIN(0),
-                id,
-                address: caller,
-                status: MemberStatus::UNVERIFIED,
-                pending_allocations: Option::None,
-                total_received: Option::None,
-                last_disbursement_timestamp: Option::None,
-                total_disbursements: Option::None,
-                reg_time,
-            };
+            let role = MemberRole::ADMIN(0);
+            let new_admin = MemberTrait::new(id, fname, lname, role, alias, caller, reg_time);
             self.members.entry(id).write(new_admin);
             let admin_count: u256 = self.admin_count.read().into();
             self.admins.entry(admin_count + 1).write(new_admin);
