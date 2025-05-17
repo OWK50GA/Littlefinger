@@ -7,9 +7,15 @@ pub trait IMemberManager<TContractState> {
         ref self: TContractState, fname: felt252, lname: felt252, alias: felt252, role: MemberRole,
         // weight: u256
     ); //-> u256;
-    fn invite_member(ref self: TContractState, fname: felt252, lname: felt252, address: ContractAddress, renumeration: u256) -> felt252;
+    fn invite_member(
+        ref self: TContractState,
+        fname: felt252,
+        lname: felt252,
+        address: ContractAddress,
+        renumeration: u256,
+    );
     fn accept_invite(ref self: TContractState, nonce: felt252, metadataURL: felt252);
-    fn verify_member(ref self: TContractState, address: ContractAddress, role: MemberRole, );
+    fn verify_member(ref self: TContractState, address: ContractAddress);
     fn update_member_details(
         ref self: TContractState,
         member_id: u256,

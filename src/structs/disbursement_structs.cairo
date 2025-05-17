@@ -9,7 +9,6 @@ pub struct DisbursementSchedule {
     end_timestamp: u64,
     interval: u64,
     last_execution: u64,
-    
 }
 
 #[derive(Copy, Drop, Serde, PartialEq, Debug, starknet::Store)]

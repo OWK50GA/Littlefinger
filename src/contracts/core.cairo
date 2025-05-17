@@ -4,14 +4,14 @@ mod Core {
     use openzeppelin::upgrades::UpgradeableComponent;
     use openzeppelin::upgrades::interface::IUpgradeable;
     use starknet::{ClassHash, ContractAddress};
-    use crate::components::member::MemberManagerComponent;
+    use crate::components::member_manager::MemberManagerComponent;
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
     component!(path: MemberManagerComponent, storage: member, event: MemberEvent);
 
     #[abi(embed_v0)]
-    impl MemberImpl = MemberManagerComponent::MemberManagerImpl<ContractState>;
+    impl MemberImpl = MemberManagerComponent::MemberManager<ContractState>;
 
     #[abi(embed_v0)]
     impl OwnableMixinImpl = OwnableComponent::OwnableMixinImpl<ContractState>;

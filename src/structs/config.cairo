@@ -6,8 +6,7 @@ pub struct CoreConfigParams {
 }
 
 #[starknet::storage_node]
-pub struct CoreConfig {
-}
+pub struct CoreConfig {}
 
 #[derive(Drop, Copy, Serde, PartialEq, Default)]
 pub enum Visibility {
@@ -36,14 +35,10 @@ pub struct StreamDetails { // init stream details
 }
 
 #[derive(Drop, Copy, Serde, Default, PartialEq)]
-pub struct PollConfigParams {
-
-}
+pub struct PollConfigParams {}
 
 #[starknet::storage_node]
-pub struct PollConfig {
-
-}
+pub struct PollConfig {}
 
 pub fn get_default_stream_details() -> StreamDetails {
     Default::default()
