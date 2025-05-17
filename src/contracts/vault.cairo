@@ -1,18 +1,24 @@
 #[starknet::contract]
 pub mod Vault {
-    use starknet::{ContractAddress, get_caller_address, get_contract_address, get_block_timestamp, get_tx_info};
-    use starknet::storage::{Map, StoragePointerWriteAccess, StoragePointerReadAccess, StoragePathEntry};
     use littlefinger::interfaces::ivault::IVault;
     use littlefinger::structs::vault_structs::{Transaction, TransactionType, VaultStatus};
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use starknet::storage::{
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
+    };
+    use starknet::{
+        ContractAddress, get_block_timestamp, get_caller_address, get_contract_address, get_tx_info,
+    };
 
     #[storage]
     struct Storage {
-        permitted_addresses: Map::<ContractAddress, bool>,
+        permitted_addresses: Map<ContractAddress, bool>,
         available_funds: u256,
-        transaction_history: Map::<u64, Transaction>, // No 1. Transaction x, no 2, transaction y etc for history, and it begins with 1
+        transaction_history: Map<
+            u64, Transaction,
+        >, // No 1. Transaction x, no 2, transaction y etc for history, and it begins with 1
         transactions_count: u64,
-        vault_status: VaultStatus
+        vault_status: VaultStatus,
     }
 
     #[event]
@@ -57,7 +63,7 @@ pub mod Vault {
     pub struct TransactionRecorded {
         transaction_type: TransactionType,
         caller: ContractAddress,
-        transaction_details: Transaction
+        transaction_details: Transaction,
     }
 
     #[constructor]
@@ -69,7 +75,9 @@ pub mod Vault {
             let caller = get_caller_address();
             assert(self.permitted_addresses.entry(caller).read(), 'Caller not permitted');
             let current_vault_status = self.vault_status.read();
-            assert(current_vault_status != VaultStatus::VAULTFROZEN, 'Vault Frozen for Transactions');
+            assert(
+                current_vault_status != VaultStatus::VAULTFROZEN, 'Vault Frozen for Transactions',
+            );
             let timestamp = get_block_timestamp();
             let this_contract = get_contract_address();
             let token_dispatcher = IERC20Dispatcher { contract_address: token };
@@ -80,19 +88,11 @@ pub mod Vault {
             // Correct me if I'm wrong, but I think recording both failed and unfailed.
 
             assert(transfer, 'Transfer unsuccessful');
-            
+
             let prev_available_funds = self.available_funds.read();
             self.available_funds.write(prev_available_funds + amount);
             self.available_funds.write(prev_available_funds + amount);
-            self.emit(
-                DepositSuccessful {
-                    caller, 
-                    token,
-                    timestamp,
-                    amount
-                }
-            )
-
+            self.emit(DepositSuccessful { caller, token, timestamp, amount })
         }
 
         fn withdraw_funds(ref self: ContractState, token: ContractAddress, amount: u256) {
@@ -100,7 +100,9 @@ pub mod Vault {
             assert(self.permitted_addresses.entry(caller).read(), 'Caller Not Permitted');
 
             let current_vault_status = self.vault_status.read();
-            assert(current_vault_status != VaultStatus::VAULTFROZEN, 'Vault Frozen for Transactions');
+            assert(
+                current_vault_status != VaultStatus::VAULTFROZEN, 'Vault Frozen for Transactions',
+            );
 
             let timestamp = get_block_timestamp();
             assert(amount <= self.available_funds.read(), 'Insufficient Balance');
@@ -114,14 +116,7 @@ pub mod Vault {
             let prev_available_funds = self.available_funds.read();
             self.available_funds.write(prev_available_funds - amount);
 
-            self.emit(
-                WithdrawalSuccessful {
-                    caller,
-                    token,
-                    amount,
-                    timestamp
-                }
-            )
+            self.emit(WithdrawalSuccessful { caller, token, amount, timestamp })
         }
 
         fn emergency_freeze(ref self: ContractState) {
@@ -147,9 +142,7 @@ pub mod Vault {
 
     #[generate_trait]
     impl InternalFunctions of InternalTrait {
-        fn _add_transaction(
-            ref self: ContractState, transaction: Transaction
-        ) {
+        fn _add_transaction(ref self: ContractState, transaction: Transaction) {
             let caller = get_caller_address();
             assert(self.permitted_addresses.entry(caller).read(), 'Caller not permitted');
             let current_transaction_count = self.transactions_count.read();
@@ -158,11 +151,11 @@ pub mod Vault {
         }
 
         fn _record_transaction(
-            ref self: ContractState, 
-            token_address: ContractAddress, 
-            amount: u256, 
+            ref self: ContractState,
+            token_address: ContractAddress,
+            amount: u256,
             transaction_type: TransactionType,
-            caller: ContractAddress
+            caller: ContractAddress,
         ) {
             let caller = get_caller_address();
             assert(self.permitted_addresses.entry(caller).read(), 'Caller Not Permitted');
@@ -174,16 +167,15 @@ pub mod Vault {
                 amount,
                 timestamp,
                 tx_hash: tx_info.transaction_hash,
-                caller
+                caller,
             };
             self._add_transaction(transaction);
-            self.emit(
-                TransactionRecorded {
-                    transaction_type,
-                    caller,
-                    transaction_details: transaction
-                }
-            );
+            self
+                .emit(
+                    TransactionRecorded {
+                        transaction_type, caller, transaction_details: transaction,
+                    },
+                );
         }
     }
 }
