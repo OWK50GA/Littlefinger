@@ -24,7 +24,7 @@ pub mod OrganizationComponent {
             ref self: ComponentState<TContractState>,
             add: Array<ContractAddress>,
             subtract: Array<ContractAddress>,
-        ) {// any one subtracted, power would be taken down to zero.
+        ) { // any one subtracted, power would be taken down to zero.
         }
     }
 

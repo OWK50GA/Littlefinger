@@ -4,8 +4,9 @@ pub mod VotingComponent {
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use starknet::{ContractAddress, get_caller_address};
-    use crate::interfaces::voting::{DEFAULT_THRESHOLD, IVote, Poll, PollTrait, PollStatus, Voted};
     use crate::interfaces::core::Config;
+    use crate::structs::voting::{DEFAULT_THRESHOLD, Poll, PollStatus, PollTrait, Voted};
+    use crate::interfaces::voting::IVote;
     use crate::structs::config::PollConfig;
 
     #[storage]
@@ -24,8 +25,7 @@ pub mod VotingComponent {
 
     #[embeddable_as(VotingImpl)]
     pub impl Voting<
-        TContractState,
-        +HasComponent<TContractState>,
+        TContractState, +HasComponent<TContractState>,
     > of IVote<ComponentState<TContractState>> {
         fn create_poll(
             ref self: ComponentState<TContractState>, name: ByteArray, desc: ByteArray,
@@ -69,16 +69,15 @@ pub mod VotingComponent {
             self.polls.entry(id).read()
         }
 
-        fn end_poll(ref self: ComponentState<TContractState>, id: u256) {
-
-        }
+        fn end_poll(ref self: ComponentState<TContractState>, id: u256) {}
     }
 
     #[generate_trait]
     pub impl VoteInternalImpl<
         TContractState, +HasComponent<ComponentState<TContractState>>,
     > of VoteTrait<TContractState> {
-        fn _initialize(ref self: ComponentState<TContractState>, admin: ContractAddress, config: Config) {
-        }
+        fn _initialize(
+            ref self: ComponentState<TContractState>, admin: ContractAddress, config: Config,
+        ) {}
     }
 }
