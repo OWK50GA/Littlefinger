@@ -5,9 +5,9 @@ pub mod VotingComponent {
     };
     use starknet::{ContractAddress, get_caller_address};
     use crate::interfaces::core::Config;
-    use crate::structs::voting::{DEFAULT_THRESHOLD, Poll, PollStatus, PollTrait, Voted};
     use crate::interfaces::voting::IVote;
     use crate::structs::config::PollConfig;
+    use crate::structs::voting::{DEFAULT_THRESHOLD, Poll, PollStatus, PollTrait, Voted};
 
     #[storage]
     pub struct Storage {
