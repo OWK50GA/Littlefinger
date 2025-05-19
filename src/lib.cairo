@@ -4,16 +4,16 @@ pub mod contracts {
 }
 pub mod interfaces {
     pub mod icore;
+    pub mod idisbursement;
     pub mod imember_manager;
     pub mod organization;
     pub mod voting;
-    pub mod idisbursement;
 }
 
 pub mod components {
+    pub mod disbursement;
     pub mod member_manager;
     pub mod organization;
-    pub mod disbursement;
     pub mod voting;
 }
 

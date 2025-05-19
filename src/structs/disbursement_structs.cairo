@@ -25,7 +25,7 @@ pub struct Disbursement {
 pub enum DisbursementStatus {
     #[default]
     SUCCESSFUL,
-    FAILED
+    FAILED,
 }
 
 #[derive(Copy, Drop, Serde, PartialEq, Debug, starknet::Store)]
@@ -34,9 +34,9 @@ pub enum ScheduleType {
     #[default]
     ONETIME,
     // TODO:
-    // We have to come up with how to implement this conditional. Off the top of my head, it could
-    // be other people validating your work, meaning it should be for the more decentralized scheme
-    // CONDITIONAL, 
+// We have to come up with how to implement this conditional. Off the top of my head, it could
+// be other people validating your work, meaning it should be for the more decentralized scheme
+// CONDITIONAL,
 }
 
 #[derive(Copy, Drop, Serde, PartialEq, Debug, starknet::Store)]
@@ -44,6 +44,6 @@ pub enum ScheduleStatus {
     #[default]
     ACTIVE,
     PAUSED,
-    DELETED
+    DELETED,
 }
 

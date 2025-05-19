@@ -1,15 +1,15 @@
-use littlefinger::structs::member_structs::Member;
 use littlefinger::structs::disbursement_structs::{DisbursementSchedule, ScheduleType};
+use littlefinger::structs::member_structs::Member;
 use starknet::ContractAddress;
 
-// TODO: The component should store failed disbursements, and everytime it disburses, after writing to the storage
-// make it retry
+// TODO: The component should store failed disbursements, and everytime it disburses, after writing
+// to the storage make it retry
 
 #[starknet::interface]
 pub trait IDisbursement<T> {
     // disbursement schedule handling
     fn create_disbursement_schedule(
-        ref self: T, 
+        ref self: T,
         schedule_type: ScheduleType,
         schedule_id: felt252,
         start: u64, //timestamp
@@ -25,9 +25,14 @@ pub trait IDisbursement<T> {
     fn get_pending_failed_disbursements(self: @T);
 
     // Total members' weight is calculated by adding the weight of all members.
-    // It can be a storage variable in the member module to make it easier to handle, concerning gas for loop transactions
+    // It can be a storage variable in the member module to make it easier to handle, concerning gas
+    // for loop transactions
     fn compute_renumeration(
-        ref self: T, member: Member, total_bonus_available: u256, total_members_weight: u16, total_funds_available: u256
+        ref self: T,
+        member: Member,
+        total_bonus_available: u256,
+        total_members_weight: u16,
+        total_funds_available: u256,
     ) -> u256;
 
     fn disburse(ref self: T, recipients: Array<Member>, token: ContractAddress);
@@ -35,5 +40,4 @@ pub trait IDisbursement<T> {
     fn update_schedule_type(ref self: T, schedule_id: felt252, schedule_type: ScheduleType);
     fn get_last_disburse_time(self: @T) -> u64;
     fn get_next_disburse_time(self: @T) -> u64;
-
 }

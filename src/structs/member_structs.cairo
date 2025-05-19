@@ -12,7 +12,8 @@ pub struct Member {
     pub status: MemberStatus,
     // pub allocation_weight: u256, -> This will be contained in the struct for each of the member
     // roles, that is what we will do
-    // The base pay is agreed between the member and the company at the beginning of their work together i.e. during registration
+    // The base pay is agreed between the member and the company at the beginning of their work
+    // together i.e. during registration
     pub base_pay: u256,
     pub pending_allocations: Option<u256>,
     pub total_received: Option<u256>,
