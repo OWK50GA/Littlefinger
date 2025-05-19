@@ -14,6 +14,7 @@ pub mod Vault {
     struct Storage {
         permitted_addresses: Map<ContractAddress, bool>,
         available_funds: u256,
+        total_bonus: u256,
         transaction_history: Map<
             u64, Transaction,
         >, // No 1. Transaction x, no 2, transaction y etc for history, and it begins with 1
@@ -29,6 +30,9 @@ pub mod Vault {
         VaultFrozen: VaultFrozen,
         VaultResumed: VaultResumed,
         TransactionRecorded: TransactionRecorded,
+        // TODO:
+        // Add an event here that gets emitted if the money goes below a certain threshold
+        // Threshold Will be decided.
     }
 
     #[derive(Copy, Drop, starknet::Event)]
@@ -66,8 +70,17 @@ pub mod Vault {
         transaction_details: Transaction,
     }
 
+    // TODO:
+    // Add to this constructor, a way to add addresses and store them as permitted addresses here
     #[constructor]
-    fn constructor(ref self: ContractState) {}
+    fn constructor(ref self: ContractState, available_funds: u256, bonus_allocation: u256) {
+        self.available_funds.write(available_funds);
+        self.total_bonus_available.write(bonus_allocation);
+    }
+
+    // TODO:
+    // From the ivault, add functions in the interfaces for subtracting from and adding to bonus
+    // IMPLEMENT HERE
 
     #[abi(embed_v0)]
     pub impl VaultImpl of IVault<ContractState> {
