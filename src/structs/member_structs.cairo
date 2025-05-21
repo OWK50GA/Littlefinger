@@ -12,8 +12,12 @@ pub struct Member {
     pub status: MemberStatus,
     // pub allocation_weight: u256, -> This will be contained in the struct for each of the member
     // roles, that is what we will do
+    // The base pay is agreed between the member and the company at the beginning of their work
+    // together i.e. during registration
+    pub base_pay: u256,
     pub pending_allocations: Option<u256>,
     pub total_received: Option<u256>,
+    pub no_of_payouts: u32,
     pub last_disbursement_timestamp: Option<u64>,
     pub total_disbursements: Option<u64>,
     pub reg_time: u64,
@@ -39,7 +43,7 @@ const ADMIN: u16 = 20;
 
 
 /// For voting purposes, a trait to convert Role to Voting Power
-impl MemberRoleIntoU16 of Into<MemberRole, u16> {
+pub impl MemberRoleIntoU16 of Into<MemberRole, u16> {
     #[inline(always)]
     fn into(self: MemberRole) -> u16 {
         match self {
