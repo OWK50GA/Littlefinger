@@ -40,8 +40,22 @@ mod Core {
         UpgradeableEvent: UpgradeableComponent::Event,
     }
 
+    #[derive(Drop, Copy, Serde)]
+    pub struct OwnerInit {
+        pub address: ContractAddress,
+        pub fnmae: felt252,
+        pub lastname: felt252,
+    }
+
     #[constructor]
-    fn constructor(ref self: ContractState, owner: ContractAddress) {}
+    fn constructor(ref self: ContractState, owner: OwnerInit) { // owner
+    // initialize member with admin of level zero
+    // params, fnmae, lastname,
+
+    // orgs
+    // is_centralized
+    // is_public.
+    }
 
     #[abi(embed_v0)]
     impl UpgradeableImpl of IUpgradeable<ContractState> {

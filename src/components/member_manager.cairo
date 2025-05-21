@@ -3,7 +3,9 @@ pub mod MemberManagerComponent {
     // use starknet::storage::StorageMapReadAccess;
     use core::num::traits::Zero;
     use littlefinger::interfaces::imember_manager::IMemberManager;
-    use littlefinger::structs::member_structs::{Member, MemberRole, MemberStatus, MemberTrait};
+    use littlefinger::structs::member_structs::{
+        Member, MemberEnum, MemberEvent, MemberRole, MemberStatus, MemberTrait,
+    };
     use starknet::storage::{
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
@@ -11,11 +13,19 @@ pub mod MemberManagerComponent {
 
     #[storage]
     pub struct Storage {
-        admins: Map<u256, Member>, //Map <Member-id, Member>
-        admin_count: u64,
-        members: Map<u256, Member>, //map for all members
-        member_count: u64,
+        pub admins: Map<u256, Member>, //Map <Member-id, Member>
+        pub admin_count: u64,
+        pub members: Map<u256, Member>, //map for all members
+        pub member_count: u64,
     }
+
+    #[event]
+    #[derive(Drop, starknet::Event)]
+    pub enum Event {
+        MemberEvent: MemberEvent,
+        MemberEnum: MemberEnum,
+    }
+
 
     #[embeddable_as(MemberManager)]
     pub impl MemberManagerImpl<
@@ -114,18 +124,32 @@ pub mod MemberManagerComponent {
             lname: felt252,
             address: ContractAddress,
             renumeration: u256,
-        ) {
+        ) -> felt252 {
+            // The flow:
+            // any admin can invite a member
+            // the member can accept
+            // For this protocol, the member must accept before other admins verify the member...
+            // this can only happen when the member config requires multisig.
             let id: u256 = (self.member_count.read() + 1).into();
             let new_member = MemberTrait::new(id, fname, lname, Default::default(), '', address, 0);
             self.members.entry(id).write(new_member);
-            // emit a member invited here.
+            let status: MemberStatus = Default::default();
+            let timestamp = get_block_timestamp();
+            let event = MemberEvent { fname, lname, address, status, value: '', timestamp };
+            self.emit(MemberEnum::Invited(event));
+
+            // stores and returns a hash, or zero if multisig is switched off.
+            0
         }
 
         fn accept_invite(
             ref self: ComponentState<TContractState>, nonce: felt252, metadataURL: felt252,
         ) {}
 
-        fn verify_member(ref self: ComponentState<TContractState>, address: ContractAddress) {}
+        fn verify_member(
+            ref self: ComponentState<TContractState>, address: ContractAddress,
+        ) { // can be verified only if invitee has accepted, and config is checked.
+        }
     }
 
     #[generate_trait]

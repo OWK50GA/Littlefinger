@@ -5,14 +5,14 @@ pub mod OrganizationComponent {
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use crate::interfaces::organization::IOrganization;
-    use crate::structs::config::CoreConfig;
+    use crate::structs::core::CoreConfig;
 
 
     #[storage]
     pub struct Storage {
         pub owner: ContractAddress,
         pub commitee: Map<ContractAddress, u16>, // address -> level of power
-        pub config: CoreConfig,
+        pub config: CoreConfig // refactor to OrganizationConfig
     }
 
     #[embeddable_as(OrganizationImpl)]

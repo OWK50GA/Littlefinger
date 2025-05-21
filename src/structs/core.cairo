@@ -1,8 +1,8 @@
 use starknet::ContractAddress;
 
+// do not use this..
 #[derive(Drop, Copy, PartialEq, Serde, Default)]
-pub struct CoreConfigParams {
-    pub visibility: Option<Visibility>,
+pub struct CoreConfigParams { // is promotion automatic? pass in the available algorithms, based on what?
 }
 
 #[starknet::storage_node]

@@ -53,3 +53,26 @@ pub struct PollResolved {
 
 pub const DEFAULT_THRESHOLD: u256 = 10;
 pub type Power = u16;
+
+#[derive(Drop, Serde, Copy, Default)]
+pub struct VoteConfigInit {
+    private: bool,
+    threshold: u256,
+    weighted: bool,
+    weighted_with: ContractAddress // weight with this token, else, use rank.
+}
+
+// For the default
+#[starknet::storage_node]
+pub struct VotingConfigNode {
+    private: bool,
+    threshold: u256,
+    weighted: bool,
+}
+
+// In the case the deployer wishes to use a default value, and maybe
+// change the value later on
+pub fn default_voting_config_init() -> VoteConfigInit {
+    // for now
+    Default::default()
+}

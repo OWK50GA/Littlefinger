@@ -13,7 +13,7 @@ pub trait IMemberManager<TContractState> {
         lname: felt252,
         address: ContractAddress,
         renumeration: u256,
-    );
+    ) -> felt252;
     fn accept_invite(ref self: TContractState, nonce: felt252, metadataURL: felt252);
     fn verify_member(ref self: TContractState, address: ContractAddress);
     fn update_member_details(
