@@ -63,8 +63,19 @@ pub impl MemberImpl of MemberTrait {
             || *self.status == MemberStatus::PROBATION
     }
 
-    fn is_verified(self: @Member) -> bool {
-        true
+    fn is_active(self: @Member) -> bool {
+        *self.status == MemberStatus::ACTIVE
+    }
+
+    fn verify(self: @Member, caller: ContractAddress) {
+        assert(self.is_active() && *self.address == caller, 'VERIFICATION FAILED');
+    }
+
+    fn is_admin(self: @Member) -> bool {
+        if let MemberRole::ADMIN(_) = *self.role {
+            return true;
+        }
+        return false;
     }
 
     fn new(
@@ -99,6 +110,22 @@ pub enum MemberStatus {
     REMOVED,
 }
 
+#[derive(Drop, starknet::Event)]
+pub struct MemberEvent {
+    pub fname: felt252,
+    pub lname: felt252,
+    pub address: ContractAddress,
+    pub status: MemberStatus,
+    pub value: felt252,
+    pub timestamp: u64,
+}
+
+#[derive(Drop, Serde, Copy, PartialEq, Default)]
+pub struct MemberConfigInit {}
+
+#[starknet::storage_node]
+pub struct MemberConfigNode {}
+
 // #[drop, starknet::Event]
 // pub struct MemberEvent {
 //     pub fname: felt252,
@@ -106,10 +133,10 @@ pub enum MemberStatus {
 //     pub address: felt252,
 // }
 
-// #[drop, starknet::Event]
-// pub enum Member {
-//     Invited: MemberEvent,
-//     Added: MemberEvent,
-//     Removed: MemberEvent,
-//     Suspended: MemberEvent,
-// }
+#[derive(Drop, starknet::Event)]
+pub enum MemberEnum {
+    Invited: MemberEvent,
+    Added: MemberEvent,
+    Removed: MemberEvent,
+    Suspended: MemberEvent,
+}

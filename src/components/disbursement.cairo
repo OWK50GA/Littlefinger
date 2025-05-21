@@ -137,6 +137,8 @@ pub mod DisbursementComponent {
         // TODO:
         // To complete this function, get the vault dispatcher and dispatcher trait, then run
         // vault_dispatcher.pay_member on each member, when you loop through the members
+        // as far as each member is active
+        // of not, skip.
         fn disburse(
             ref self: ComponentState<TContractState>,
             recipients: Array<Member>,

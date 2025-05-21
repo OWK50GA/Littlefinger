@@ -19,8 +19,9 @@ pub mod components {
 
 pub mod structs {
     pub mod base;
-    pub mod config;
+    pub mod core;
     pub mod disbursement_structs;
     pub mod member_structs;
+    pub mod organization;
     pub mod voting;
 }

@@ -1,4 +1,4 @@
-use crate::structs::config::{CoreConfigParams, PollConfigParams};
+use crate::structs::core::{CoreConfigParams, PollConfigParams};
 
 #[starknet::interface]
 pub trait IConfig<TContractState> {
