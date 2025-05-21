@@ -98,3 +98,18 @@ pub enum MemberStatus {
     PROBATION,
     REMOVED,
 }
+
+// #[drop, starknet::Event]
+// pub struct MemberEvent {
+//     pub fname: felt252,
+//     pub lname: felt252,
+//     pub address: felt252,
+// }
+
+// #[drop, starknet::Event]
+// pub enum Member {
+//     Invited: MemberEvent,
+//     Added: MemberEvent,
+//     Removed: MemberEvent,
+//     Suspended: MemberEvent,
+// }

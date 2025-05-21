@@ -74,6 +74,7 @@ pub mod MemberManagerComponent {
 
             self.members.entry(member_id).write(member);
         }
+
         fn suspend_member(
             ref self: ComponentState<TContractState>,
             member_id: u256 // suspension_duration: u64 //block timestamp operation
@@ -88,6 +89,7 @@ pub mod MemberManagerComponent {
             member.status = MemberStatus::SUSPENDED;
             self.members.entry(member_id).write(member);
         }
+
         fn reinstate_member(ref self: ComponentState<TContractState>, member_id: u256) {
             let mut member = self.members.entry(member_id).read();
             assert(member.status == MemberStatus::SUSPENDED, 'Invalid member selection');
@@ -112,10 +114,17 @@ pub mod MemberManagerComponent {
             lname: felt252,
             address: ContractAddress,
             renumeration: u256,
-        ) {}
+        ) {
+            let id: u256 = (self.member_count.read() + 1).into();
+            let new_member = MemberTrait::new(id, fname, lname, Default::default(), '', address, 0);
+            self.members.entry(id).write(new_member);
+            // emit a member invited here.
+        }
+
         fn accept_invite(
             ref self: ComponentState<TContractState>, nonce: felt252, metadataURL: felt252,
         ) {}
+
         fn verify_member(ref self: ComponentState<TContractState>, address: ContractAddress) {}
     }
 
