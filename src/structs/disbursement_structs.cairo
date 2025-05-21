@@ -1,14 +1,31 @@
-// use starknet::ContractAddress;
+use starknet::ContractAddress;
 
 #[derive(Copy, Drop, Serde, PartialEq, Debug, starknet::Store)]
 pub struct DisbursementSchedule {
-    schedule_id: felt252,
-    is_active: bool,
-    schedule_type: ScheduleType,
-    start_timestamp: u64,
-    end_timestamp: u64,
-    interval: u64,
-    last_execution: u64,
+    pub schedule_id: felt252,
+    // is_active: bool,
+    pub status: ScheduleStatus,
+    pub schedule_type: ScheduleType,
+    pub start_timestamp: u64,
+    pub end_timestamp: u64,
+    pub interval: u64,
+    pub last_execution: Option<u64>,
+}
+
+#[derive(Copy, Drop, Serde, PartialEq, Debug, starknet::Store)]
+pub struct Disbursement {
+    caller: ContractAddress,
+    timestamp: u64,
+    total_disbursed: u256,
+    no_of_recipients: u64,
+    // disbursement_status: DisbursementStatus
+}
+
+#[derive(Copy, Drop, Serde, PartialEq, Debug, starknet::Store)]
+pub enum DisbursementStatus {
+    #[default]
+    SUCCESSFUL,
+    FAILED,
 }
 
 #[derive(Copy, Drop, Serde, PartialEq, Debug, starknet::Store)]
@@ -16,6 +33,17 @@ pub enum ScheduleType {
     RECURRING,
     #[default]
     ONETIME,
-    CONDITIONAL,
+    // TODO:
+// We have to come up with how to implement this conditional. Off the top of my head, it could
+// be other people validating your work, meaning it should be for the more decentralized scheme
+// CONDITIONAL,
+}
+
+#[derive(Copy, Drop, Serde, PartialEq, Debug, starknet::Store)]
+pub enum ScheduleStatus {
+    #[default]
+    ACTIVE,
+    PAUSED,
+    DELETED,
 }
 

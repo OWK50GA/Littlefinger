@@ -51,4 +51,6 @@ mod Core {
             self.upgradeable.upgrade(new_class_hash);
         }
     }
+    // #[abi(embed_v0)]
+// pub impl CoreImpl of
 }
