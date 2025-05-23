@@ -8,4 +8,5 @@ pub trait IVote<TContractState> {
     fn vote(ref self: TContractState, support: bool, id: u256);
     fn get_poll(self: @TContractState, id: u256) -> Poll;
     fn end_poll(ref self: TContractState, id: u256);
+    fn update_config(ref self: TContractState, config: Config);
 }

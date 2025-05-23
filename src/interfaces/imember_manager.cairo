@@ -1,4 +1,4 @@
-use littlefinger::structs::member_structs::{Member, MemberRole};
+use littlefinger::structs::member_structs::{MemberResponse, MemberRole};
 use starknet::ContractAddress;
 
 #[starknet::interface]
@@ -28,7 +28,8 @@ pub trait IMemberManager<TContractState> {
         member_id: u256 // suspension_duration: u64 //block timestamp operation
     );
     fn reinstate_member(ref self: TContractState, member_id: u256);
-    fn get_members(self: @TContractState) -> Span<Member>;
+    fn get_members(self: @TContractState) -> Span<MemberResponse>;
+    fn update_config(ref self: TContractState, config: Config);
     // ROLE MANAGEMENT
 
     // ALLOCATION WEIGHT MANAGEMENT (PROMOTION & DELETION)

@@ -4,11 +4,11 @@ pub mod VotingComponent {
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use starknet::{ContractAddress, get_caller_address};
-    use crate::interfaces::icore::{Config, IConfig};
+    use crate::interfaces::icore::{IConfig};
     use crate::interfaces::voting::IVote;
-    use crate::structs::core::PollConfig;
+    use crate::structs::core::Config;
     use crate::structs::member_structs::MemberTrait;
-    use crate::structs::voting::{DEFAULT_THRESHOLD, Poll, PollStatus, PollTrait, Voted};
+    use crate::structs::voting::{DEFAULT_THRESHOLD, Poll, PollStatus, PollTrait, Voted, PollConfig};
     use super::super::member_manager::MemberManagerComponent;
 
     #[storage]
@@ -45,7 +45,7 @@ pub mod VotingComponent {
         ) -> u256 {
             let caller = get_caller_address();
             let mc = get_dep_component!(@self, Member);
-            let member = mc.members.entry(member_id).read();
+            let member = mc.members.entry(member_id).member.read();
             member.verify(caller);
             let id = self.nonce.read() + 1;
             assert(name.len() > 0 && desc.len() > 0, 'NAME OR DESC IS EMPTY');
@@ -73,7 +73,6 @@ pub mod VotingComponent {
             }
 
             let vote_count = poll.yes_votes + poll.no_votes;
-
             if vote_count >= DEFAULT_THRESHOLD {
                 poll.resolve();
                 // emit a Poll Resolved Event
@@ -101,7 +100,7 @@ pub mod VotingComponent {
 
     #[abi(embed_v0)]
     pub impl VotingConfigImpl<
-        TContractState, +HasComponent<ComponentState<TContractState>>,
+        TContractState, +HasComponent<TContractState>,
     > of IConfig<ComponentState<TContractState>> {
         fn update_config(ref self: ComponentState<TContractState>, config: Config) {
             // assert that the config is of VoteConfig

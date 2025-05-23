@@ -1,4 +1,3 @@
-use core::num::traits::Zero;
 use starknet::ContractAddress;
 use super::base::ContractAddressDefault;
 
@@ -76,3 +75,9 @@ pub fn default_voting_config_init() -> VoteConfigInit {
     // for now
     Default::default()
 }
+
+#[derive(Drop, Copy, Serde, Default, PartialEq)]
+pub struct PollConfigParams {}
+
+#[starknet::storage_node]
+pub struct PollConfig {}

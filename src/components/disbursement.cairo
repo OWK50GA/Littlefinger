@@ -4,7 +4,7 @@ pub mod DisbursementComponent {
     use littlefinger::structs::disbursement_structs::{
         Disbursement, DisbursementSchedule, DisbursementStatus, ScheduleStatus, ScheduleType,
     };
-    use littlefinger::structs::member_structs::{Member, MemberRoleIntoU16};
+    use littlefinger::structs::member_structs::{Member};
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use starknet::storage::{
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
@@ -123,10 +123,8 @@ pub mod DisbursementComponent {
             total_members_weight: u16,
             total_funds_available: u256,
         ) -> u256 {
-            let member_role = member.role;
-            let member_role_u16 = MemberRoleIntoU16::into(member_role);
             let member_base_pay = member.base_pay;
-            let bonus_proportion = member_role_u16 / total_members_weight;
+            let bonus_proportion = member.role.into() / total_members_weight;
             let bonus_pay: u256 = bonus_proportion.into() * total_bonus_available;
 
             let renumeration = member_base_pay + bonus_pay;
