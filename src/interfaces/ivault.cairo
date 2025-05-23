@@ -8,5 +8,6 @@ pub trait IVault<TContractState> {
     fn unfreeze_vault(ref self: TContractState);
     // fn bulk_transfer(ref self: TContractState, recipients: Span<ContractAddress>);
     fn get_balance(self: @TContractState) -> u256;
-    fn pay_member(ref self: ContractState, recipient: ContractAddress, amount: u256) -> bool;
+    fn pay_member(ref self: TContractState, recipient: ContractAddress, amount: u256) -> bool;
+    fn update_config(ref self: TContractState, config: Config);
 }

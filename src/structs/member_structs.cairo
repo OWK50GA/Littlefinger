@@ -1,8 +1,9 @@
 use starknet::ContractAddress;
+use starknet::storage::{Mutable, StoragePath};
 use super::base::ContractAddressDefault;
 
 #[derive(Copy, Drop, Serde, Default, PartialEq, starknet::Store)]
-pub struct Member {
+pub struct MemberResponse {
     pub fname: felt252,
     pub lname: felt252,
     pub alias: felt252,
@@ -14,6 +15,34 @@ pub struct Member {
     // roles, that is what we will do
     // The base pay is agreed between the member and the company at the beginning of their work
     // together i.e. during registration
+    pub base_pay: u256,
+    pub pending_allocations: Option<u256>,
+    pub total_received: Option<u256>,
+    pub no_of_payouts: u32,
+    pub last_disbursement_timestamp: Option<u64>,
+    pub total_disbursements: Option<u64>,
+    pub reg_time: u64,
+}
+
+#[derive(Copy, Drop, Serde, Default, PartialEq, starknet::Store)]
+pub struct MemberDetails {
+    pub fname: felt252,
+    pub lname: felt252,
+    pub alias: felt252,
+}
+
+#[derive(Copy, Drop, Serde, Default, PartialEq, starknet::Store)]
+pub struct Member {
+    pub id: u256,
+    pub address: ContractAddress,
+    pub status: MemberStatus,
+    pub role: MemberRole,
+}
+
+#[starknet::storage_node]
+pub struct MemberNode {
+    pub details: MemberDetails,
+    pub member: Member,
     pub base_pay: u256,
     pub pending_allocations: Option<u256>,
     pub total_received: Option<u256>,
@@ -41,6 +70,7 @@ const CONTRACTOR: u16 = 1;
 const EMPLOYEE: u16 = 3;
 const ADMIN: u16 = 20;
 
+// use a function called get_role_value()
 
 /// For voting purposes, a trait to convert Role to Voting Power
 pub impl MemberRoleIntoU16 of Into<MemberRole, u16> {
@@ -78,27 +108,41 @@ pub impl MemberImpl of MemberTrait {
         return false;
     }
 
-    fn new(
+    fn with_details(
         id: u256,
         fname: felt252,
         lname: felt252,
+        status: MemberStatus,
         role: MemberRole,
         alias: felt252,
-        caller: ContractAddress,
-        reg_time: u64,
-    ) -> Member {
-        let mut member: Member = Default::default();
-        // checks, if necessary
-        member.fname = fname;
-        member.lname = lname;
-        member.role = role;
-        member.alias = alias;
-        member.address = caller;
-        member.reg_time = reg_time;
-        member
+        address: ContractAddress,
+    ) -> (Member, MemberDetails) {
+        let member = Member { id, address, status, role };
+        let details = MemberDetails { fname, lname, alias };
+
+        (member, details)
+    }
+
+    fn suspend(ref self: Member) {
+        assert(
+            self.status != MemberStatus::SUSPENDED
+                && self.status != MemberStatus::UNVERIFIED
+                && self.status != MemberStatus::REMOVED,
+            'Invalid member selection',
+        );
+        self.status = MemberStatus::SUSPENDED;
+    }
+
+    fn reinstate(ref self: Member) {
+        assert(self.status == MemberStatus::SUSPENDED, 'Invalid member selection');
+        self.status = MemberStatus::ACTIVE;
+    }
+
+    fn to_response(self: @Member, storage: StoragePath<MemberNode>) -> MemberResponse {
+        // Implement To Member Response
+        Default::default()
     }
 }
-
 
 #[derive(Copy, Drop, Serde, Default, PartialEq, starknet::Store)]
 pub enum MemberStatus {
@@ -120,8 +164,12 @@ pub struct MemberEvent {
     pub timestamp: u64,
 }
 
-#[derive(Drop, Serde, Copy, PartialEq, Default)]
-pub struct MemberConfigInit {}
+#[derive(Drop, Serde, PartialEq, Default)]
+pub struct MemberConfigInit {
+    // assign weight for each role, else use the into.
+    pub weight: Array<u16>, // currently there are three roles
+    pub visibility: u8 // ranges from 0 to 2
+}
 
 #[starknet::storage_node]
 pub struct MemberConfigNode {}

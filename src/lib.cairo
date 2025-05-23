@@ -7,6 +7,7 @@ pub mod interfaces {
     pub mod idisbursement;
     pub mod imember_manager;
     pub mod organization;
+    pub mod ivault;
     pub mod voting;
 }
 

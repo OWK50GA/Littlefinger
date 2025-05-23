@@ -5,10 +5,13 @@ mod Core {
     use openzeppelin::upgrades::interface::IUpgradeable;
     use starknet::{ClassHash, ContractAddress};
     use crate::components::member_manager::MemberManagerComponent;
+    use crate::components::organization::OrganizationComponent;
+    use crate::structs::organization::{OrganizationConfig, OrganizationInfo, OwnerInit};
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
     component!(path: MemberManagerComponent, storage: member, event: MemberEvent);
+    component!(path: OrganizationComponent, storage: organization, event: OrganizationEvent);
 
     #[abi(embed_v0)]
     impl MemberImpl = MemberManagerComponent::MemberManager<ContractState>;
@@ -27,6 +30,8 @@ mod Core {
         ownable: OwnableComponent::Storage,
         #[substorage(v0)]
         upgradeable: UpgradeableComponent::Storage,
+        #[substorage(v0)]
+        organization: OrganizationComponent::Storage,
     }
 
     #[event]
@@ -38,17 +43,21 @@ mod Core {
         OwnableEvent: OwnableComponent::Event,
         #[flat]
         UpgradeableEvent: UpgradeableComponent::Event,
+        #[flat]
+        OrganizationEvent: OrganizationComponent::Event,
     }
 
-    #[derive(Drop, Copy, Serde)]
-    pub struct OwnerInit {
-        pub address: ContractAddress,
-        pub fnmae: felt252,
-        pub lastname: felt252,
-    }
+    // #[derive(Drop, Copy, Serde)]
+    // pub struct OwnerInit {
+    //     pub address: ContractAddress,
+    //     pub fnmae: felt252,
+    //     pub lastname: felt252,
+    // }
 
     #[constructor]
-    fn constructor(ref self: ContractState, owner: OwnerInit) { // owner
+    fn constructor(ref self: ContractState, organization_config: OrganizationConfig) { // owner
+        self.or
+
     // initialize member with admin of level zero
     // params, fnmae, lastname,
 
@@ -65,6 +74,4 @@ mod Core {
             self.upgradeable.upgrade(new_class_hash);
         }
     }
-    // #[abi(embed_v0)]
-// pub impl CoreImpl of
 }

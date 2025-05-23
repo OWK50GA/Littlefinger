@@ -7,4 +7,5 @@ pub trait IOrganization<TContractState> {
     fn adjust_committee(
         ref self: TContractState, add: Array<ContractAddress>, subtract: Array<ContractAddress>,
     );
+    fn update_config(ref self: TContractState, config: Config);
 }

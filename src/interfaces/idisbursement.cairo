@@ -40,4 +40,5 @@ pub trait IDisbursement<T> {
     fn update_schedule_type(ref self: T, schedule_id: felt252, schedule_type: ScheduleType);
     fn get_last_disburse_time(self: @T) -> u64;
     fn get_next_disburse_time(self: @T) -> u64;
+    fn update_config(ref self: T, config: Config);  // update
 }
