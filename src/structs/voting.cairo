@@ -54,7 +54,7 @@ pub const DEFAULT_THRESHOLD: u256 = 10;
 pub type Power = u16;
 
 #[derive(Drop, Serde, Copy, Default)]
-pub struct VoteConfigInit {
+pub struct VotingConfig {
     private: bool,
     threshold: u256,
     weighted: bool,
@@ -71,7 +71,7 @@ pub struct VotingConfigNode {
 
 // In the case the deployer wishes to use a default value, and maybe
 // change the value later on
-pub fn default_voting_config_init() -> VoteConfigInit {
+pub fn default_voting_config_init() -> VotingConfig {
     // for now
     Default::default()
 }

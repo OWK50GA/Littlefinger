@@ -4,11 +4,13 @@ pub mod VotingComponent {
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use starknet::{ContractAddress, get_caller_address};
-    use crate::interfaces::icore::{IConfig};
+    use crate::interfaces::icore::IConfig;
     use crate::interfaces::voting::IVote;
-    use crate::structs::core::Config;
     use crate::structs::member_structs::MemberTrait;
-    use crate::structs::voting::{DEFAULT_THRESHOLD, Poll, PollStatus, PollTrait, Voted, PollConfig};
+    use crate::structs::voting::{
+        DEFAULT_THRESHOLD, Poll, PollConfig, PollStatus, PollTrait, Voted, VotingConfig,
+        VotingConfigNode,
+    };
     use super::super::member_manager::MemberManagerComponent;
 
     #[storage]
@@ -16,7 +18,7 @@ pub mod VotingComponent {
         pub polls: Map<u256, Poll>,
         pub voters: Map<(ContractAddress, u256), bool>,
         pub nonce: u256,
-        pub config: PollConfig,
+        pub config: VotingConfigNode,
     }
 
     #[event]
@@ -86,6 +88,12 @@ pub mod VotingComponent {
         }
 
         fn end_poll(ref self: ComponentState<TContractState>, id: u256) {}
+
+        fn update_voting_config(ref self: ComponentState<TContractState>, config: VotingConfig) {
+            // assert that the config is of VoteConfig
+            // for now
+            let _ = 0;
+        }
     }
 
     #[generate_trait]
@@ -93,19 +101,8 @@ pub mod VotingComponent {
         TContractState, +HasComponent<ComponentState<TContractState>>,
     > of VoteTrait<TContractState> {
         fn _initialize(
-            ref self: ComponentState<TContractState>, admin: ContractAddress, config: Config,
+            ref self: ComponentState<TContractState>, admin: ContractAddress, config: VotingConfig,
         ) { // The config should consist of the privacy, voting threshold, weighted (with power) or
-        }
-    }
-
-    #[abi(embed_v0)]
-    pub impl VotingConfigImpl<
-        TContractState, +HasComponent<TContractState>,
-    > of IConfig<ComponentState<TContractState>> {
-        fn update_config(ref self: ComponentState<TContractState>, config: Config) {
-            // assert that the config is of VoteConfig
-            // for now
-            let _ = 0;
         }
     }
 }

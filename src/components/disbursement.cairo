@@ -4,16 +4,17 @@ pub mod DisbursementComponent {
     use littlefinger::structs::disbursement_structs::{
         Disbursement, DisbursementSchedule, DisbursementStatus, ScheduleStatus, ScheduleType,
     };
-    use littlefinger::structs::member_structs::{Member};
+    use littlefinger::structs::member_structs::Member;
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use starknet::storage::{
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use starknet::syscalls::get_execution_info_syscall;
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
+    use super::super::member_manager::MemberManagerComponent;
 
     #[storage]
-    struct Storage {
+    pub struct Storage {
         authorized_callers: Map<ContractAddress, bool>,
         disbursement_schedules: Map<felt252, Option<DisbursementSchedule>>,
         current_schedule: DisbursementSchedule,
@@ -24,7 +25,8 @@ pub mod DisbursementComponent {
 
     #[embeddable_as(DisbursementManager)]
     pub impl DisbursementImpl<
-        TContractState, +HasComponent<TContractState>,
+        TContractState, +HasComponent<TContractState>, +Drop<TContractState>,
+        impl Member: MemberManagerComponent::HasComponent<TContractState>,
     > of IDisbursement<ComponentState<TContractState>> {
         fn create_disbursement_schedule(
             ref self: ComponentState<TContractState>,

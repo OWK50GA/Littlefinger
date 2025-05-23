@@ -3,11 +3,10 @@ pub mod contracts {
     pub mod factory;
 }
 pub mod interfaces {
-    pub mod icore;
     pub mod idisbursement;
     pub mod imember_manager;
-    pub mod organization;
     pub mod ivault;
+    pub mod organization;
     pub mod voting;
 }
 
