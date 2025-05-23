@@ -165,7 +165,7 @@ pub struct MemberEvent {
 }
 
 #[derive(Drop, Serde, PartialEq, Default)]
-pub struct MemberConfigInit {
+pub struct MemberConfig {
     // assign weight for each role, else use the into.
     pub weight: Array<u16>, // currently there are three roles
     pub visibility: u8 // ranges from 0 to 2

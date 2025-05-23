@@ -1,4 +1,4 @@
-use crate::structs::voting::Poll;
+use crate::structs::voting::{Poll, VotingConfig};
 
 #[starknet::interface]
 pub trait IVote<TContractState> {
@@ -8,5 +8,5 @@ pub trait IVote<TContractState> {
     fn vote(ref self: TContractState, support: bool, id: u256);
     fn get_poll(self: @TContractState, id: u256) -> Poll;
     fn end_poll(ref self: TContractState, id: u256);
-    fn update_config(ref self: TContractState, config: Config);
+    fn update_voting_config(ref self: TContractState, config: VotingConfig);
 }

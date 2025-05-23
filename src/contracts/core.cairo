@@ -7,14 +7,24 @@ mod Core {
     use crate::components::member_manager::MemberManagerComponent;
     use crate::components::organization::OrganizationComponent;
     use crate::structs::organization::{OrganizationConfig, OrganizationInfo, OwnerInit};
+    use crate::components::voting::VotingComponent;
+    use crate::components::disbursement::DisbursementComponent;
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
     component!(path: MemberManagerComponent, storage: member, event: MemberEvent);
     component!(path: OrganizationComponent, storage: organization, event: OrganizationEvent);
+    component!(path: VotingComponent, storage: voting, event: VotingEvent);
+    component!(path: DisbursementComponent, storage: disbursement, event: DisbursementEvent);
 
     #[abi(embed_v0)]
     impl MemberImpl = MemberManagerComponent::MemberManager<ContractState>;
+    #[abi(embed_v0)]
+    impl DisbursementImpl = DisbursementComponent::DisbursementManager<ContractState>;
+    #[abi(embed_v0)]
+    impl OrganizationImpl = OrganizationComponent::OrganizationManager<ContractState>;
+    #[abi(embed_v0)]
+    impl VotingImpl = VotingComponent::VotingImpl<ContractState>;
 
     #[abi(embed_v0)]
     impl OwnableMixinImpl = OwnableComponent::OwnableMixinImpl<ContractState>;
@@ -23,6 +33,7 @@ mod Core {
     impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
 
     #[storage]
+    #[allow(starknet::colliding_storage_paths)]
     struct Storage {
         #[substorage(v0)]
         member: MemberManagerComponent::Storage,
@@ -32,6 +43,10 @@ mod Core {
         upgradeable: UpgradeableComponent::Storage,
         #[substorage(v0)]
         organization: OrganizationComponent::Storage,
+        #[substorage(v0)]
+        voting: VotingComponent::Storage,
+        #[substorage(v0)]
+        disbursement: DisbursementComponent::Storage,
     }
 
     #[event]
@@ -45,6 +60,10 @@ mod Core {
         UpgradeableEvent: UpgradeableComponent::Event,
         #[flat]
         OrganizationEvent: OrganizationComponent::Event,
+        #[flat]
+        VotingEvent: VotingComponent::Event,
+        #[flat]
+        DisbursementEvent: DisbursementComponent::Event,
     }
 
     // #[derive(Drop, Copy, Serde)]
@@ -56,14 +75,7 @@ mod Core {
 
     #[constructor]
     fn constructor(ref self: ContractState, organization_config: OrganizationConfig) { // owner
-        self.or
-
-    // initialize member with admin of level zero
-    // params, fnmae, lastname,
-
-    // orgs
-    // is_centralized
-    // is_public.
+        
     }
 
     #[abi(embed_v0)]

@@ -4,12 +4,11 @@ pub mod MemberManagerComponent {
     use littlefinger::interfaces::icore::IConfig;
     use littlefinger::interfaces::imember_manager::IMemberManager;
     use littlefinger::structs::member_structs::{
-        MemberEnum, MemberEvent, MemberNode, MemberResponse, MemberRole, MemberStatus, MemberTrait,
+        MemberEnum, MemberEvent, MemberNode, MemberResponse, MemberRole, MemberStatus, MemberTrait, MemberConfig, MemberConfigNode,
     };
-    use littlefinger::structs::core::Config;
     use starknet::storage::{
         Map, MutableVecTrait, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
-        Vec, VecTrait
+        Vec, VecTrait,
     };
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
 
@@ -20,6 +19,7 @@ pub mod MemberManagerComponent {
         pub members: Map<u256, MemberNode>,
         pub member_count: u256,
         pub role_value: Vec<u16>,
+        pub config: MemberConfigNode,
     }
 
     #[event]
@@ -155,17 +155,23 @@ pub mod MemberManagerComponent {
         // if config.<param> != that, return;
 
         }
+
+        fn update_member_config(ref self: ComponentState<TContractState>, config: MemberConfig) {
+            
+        }
     }
 
     // this might init the public key, where necessary
     #[generate_trait]
-    pub impl InternalImpl<TContractState, +HasComponent<ComponentState<TContractState>>,
+    pub impl InternalImpl<
+        TContractState, +HasComponent<ComponentState<TContractState>>,
     > of InternalTrait<TContractState> {
         fn initializer(
             ref self: ComponentState<TContractState>,
             fname: felt252,
             lname: felt252,
             alias: felt252,
+            config: MemberConfig,
         ) {
             // This will be for making admins and giving people control/taking it away
             let caller = get_caller_address();
@@ -174,6 +180,9 @@ pub mod MemberManagerComponent {
 
             let reg_time = get_block_timestamp();
             let role = MemberRole::ADMIN(0);
+            let (new_admin, details) = MemberTrait::with_details(
+                id, fname, lname, status, role, alias, caller,
+            );
             let new_admin = MemberTrait::new(id, fname, lname, role, alias, caller, reg_time);
             self.members.entry(id).write(new_admin);
             self.admin_ca.entry(caller).write(true);
@@ -197,17 +206,6 @@ pub mod MemberManagerComponent {
         fn assert_admin(self: @ComponentState<TContractState>) {
             let caller = get_caller_address();
             assert(self.admin_ca.entry(caller).read(), 'UNAUTHORIZED');
-        }
-    }
-
-    #[abi(embed_v0)]
-    pub impl MemberConfigImpl<
-        TContractState, +HasComponent<TContractState>,
-    > of IConfig<ComponentState<TContractState>> {
-        fn update_config(ref self: ComponentState<TContractState>, config: Config) {
-            if let Config::Member(_) = config {
-
-            }
         }
     }
 }

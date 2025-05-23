@@ -1,5 +1,5 @@
 use starknet::ContractAddress;
-use super::member_structs::MemberConfigInit;
+use super::member_structs::MemberConfig;
 use super::organization::{OrganizationConfig, OwnerInit};
 use super::voting::PollConfigParams;
 
@@ -39,15 +39,6 @@ pub struct StreamDetails { // init stream details
 
 pub fn get_default_stream_details() -> StreamDetails {
     Default::default()
-}
-
-#[derive(Drop, Serde, PartialEq)]
-pub enum Config {
-    #[default]
-    Core: CoreConfigParams,
-    Poll: PollConfigParams,
-    Organization: OrganizationConfig,
-    Member: MemberConfigInit,
 }
 
 #[starknet::storage_node]
