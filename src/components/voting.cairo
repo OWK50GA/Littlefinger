@@ -4,7 +4,7 @@ pub mod VotingComponent {
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use starknet::{ContractAddress, get_caller_address};
-    use crate::interfaces::icore::IConfig;
+    // use crate::interfaces::icore::IConfig;
     use crate::interfaces::voting::IVote;
     use crate::structs::member_structs::MemberTrait;
     use crate::structs::voting::{

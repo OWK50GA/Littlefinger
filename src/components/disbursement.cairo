@@ -4,7 +4,7 @@ pub mod DisbursementComponent {
     use littlefinger::structs::disbursement_structs::{
         Disbursement, DisbursementSchedule, DisbursementStatus, ScheduleStatus, ScheduleType,
     };
-    use littlefinger::structs::member_structs::Member;
+    use littlefinger::structs::member_structs::{Member, MemberNode};
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use starknet::storage::{
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
@@ -119,6 +119,7 @@ pub mod DisbursementComponent {
         }
 
         fn compute_renumeration(
+            // ref self: ComponentState<TContractState>,
             ref self: ComponentState<TContractState>,
             member: Member,
             total_bonus_available: u256,
@@ -139,25 +140,25 @@ pub mod DisbursementComponent {
         // vault_dispatcher.pay_member on each member, when you loop through the members
         // as far as each member is active
         // of not, skip.
-        fn disburse(
-            ref self: ComponentState<TContractState>,
-            recipients: Array<Member>,
-            token: ContractAddress,
-        ) {
-            let exec_info = get_execution_info_syscall().unwrap();
-            let now = exec_info.block_info.block_timestamp;
+        // fn disburse(
+        //     ref self: ComponentState<TContractState>,
+        //     recipients: Array<Member>,
+        //     token: ContractAddress,
+        // ) {
+        //     let exec_info = get_execution_info_syscall().unwrap();
+        //     let now = exec_info.block_info.block_timestamp;
 
-            let current_schedule = self.current_schedule.read();
-            assert(current_schedule.status == ScheduleStatus::ACTIVE, 'Schedule Not Active');
-            let interval = current_schedule.interval;
+        //     let current_schedule = self.current_schedule.read();
+        //     assert(current_schedule.status == ScheduleStatus::ACTIVE, 'Schedule Not Active');
+        //     let interval = current_schedule.interval;
 
-            if let Option::Some(mut last_cycle) = current_schedule.last_execution {
-                assert(now >= last_cycle + interval, 'Too early to pay');
-            } else {
-                let start_time = current_schedule.start_timestamp;
-                assert(now > start_time, 'Too early to pay');
-            }
-        }
+        //     if let Option::Some(mut last_cycle) = current_schedule.last_execution {
+        //         assert(now >= last_cycle + interval, 'Too early to pay');
+        //     } else {
+        //         let start_time = current_schedule.start_timestamp;
+        //         assert(now > start_time, 'Too early to pay');
+        //     }
+        // }
 
         fn update_schedule_interval(
             ref self: ComponentState<TContractState>, schedule_id: felt252, new_interval: u64,

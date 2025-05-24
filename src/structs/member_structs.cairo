@@ -39,6 +39,25 @@ pub struct Member {
     pub role: MemberRole,
 }
 
+#[derive(Copy, Drop, Serde, PartialEq, starknet::Store)]
+pub struct MemberInvite {
+    pub address: ContractAddress,
+    // pub status: MemberStatus,
+    pub role: MemberRole,
+    pub base_pay: u256,
+    pub invite_status: InviteStatus,
+    pub expiry: u64,
+}
+
+#[derive(Copy, Drop, Serde, PartialEq, starknet::Store)]
+pub enum InviteStatus {
+    #[default]
+    PENDING,
+    ACCEPTED,
+    REJECTED,
+    EXPIRED
+}
+
 #[starknet::storage_node]
 pub struct MemberNode {
     pub details: MemberDetails,
@@ -66,9 +85,9 @@ pub enum MemberRole {
 
 // subject to change, but hard coded for now
 // may be subject to customization
-const CONTRACTOR: u16 = 1;
-const EMPLOYEE: u16 = 3;
-const ADMIN: u16 = 20;
+const CONTRACTOR: u16 = 1; //will use zero to index
+const EMPLOYEE: u16 = 3; // will use one to index
+const ADMIN: u16 = 20; // will use 2 to index
 
 // use a function called get_role_value()
 
@@ -164,6 +183,13 @@ pub struct MemberEvent {
     pub timestamp: u64,
 }
 
+#[derive(Drop, starknet::Event)]
+pub struct MemberInvited {
+    pub address: ContractAddress,
+    pub role: MemberRole,
+    pub timestamp: u64,
+}
+
 #[derive(Drop, Serde, PartialEq, Default)]
 pub struct MemberConfig {
     // assign weight for each role, else use the into.
@@ -183,7 +209,7 @@ pub struct MemberConfigNode {}
 
 #[derive(Drop, starknet::Event)]
 pub enum MemberEnum {
-    Invited: MemberEvent,
+    Invited: MemberInvited,
     Added: MemberEvent,
     Removed: MemberEvent,
     Suspended: MemberEvent,

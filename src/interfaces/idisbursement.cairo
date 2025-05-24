@@ -1,5 +1,5 @@
 use littlefinger::structs::disbursement_structs::{DisbursementSchedule, ScheduleType};
-use littlefinger::structs::member_structs::Member;
+use littlefinger::structs::member_structs::{Member};
 use starknet::ContractAddress;
 
 // TODO: The component should store failed disbursements, and everytime it disburses, after writing
@@ -35,7 +35,7 @@ pub trait IDisbursement<T> {
         total_funds_available: u256,
     ) -> u256;
 
-    fn disburse(ref self: T, recipients: Array<Member>, token: ContractAddress);
+    // fn disburse(ref self: T, recipients: Array<Member>, token: ContractAddress);
     fn update_schedule_interval(ref self: T, schedule_id: felt252, new_interval: u64);
     fn update_schedule_type(ref self: T, schedule_id: felt252, schedule_type: ScheduleType);
     fn get_last_disburse_time(self: @T) -> u64;

@@ -1,25 +1,27 @@
 #[starknet::component]
 pub mod MemberManagerComponent {
     use core::num::traits::Zero;
-    use littlefinger::interfaces::icore::IConfig;
+    // use littlefinger::interfaces::icore::IConfig;
     use littlefinger::interfaces::imember_manager::IMemberManager;
     use littlefinger::structs::member_structs::{
-        MemberEnum, MemberEvent, MemberNode, MemberResponse, MemberRole, MemberStatus, MemberTrait, MemberConfig, MemberConfigNode,
+        MemberEnum, MemberEvent, MemberNode, MemberResponse, MemberRole, MemberStatus, MemberTrait, MemberConfig, 
+        MemberConfigNode, Member, MemberDetails, MemberInvite, MemberInvited, InviteStatus
     };
     use starknet::storage::{
         Map, MutableVecTrait, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
         Vec, VecTrait,
     };
-    use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
+    use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
 
     #[storage]
     pub struct Storage {
         pub admin_count: u64,
-        pub admin_ca: Map<ContractAddress, bool>,
-        pub members: Map<u256, MemberNode>,
+        pub admin_ca: Map::<ContractAddress, bool>,
+        pub members: Map::<u256, MemberNode>,
         pub member_count: u256,
         pub role_value: Vec<u16>,
         pub config: MemberConfigNode,
+        pub member_invites: Map::<ContractAddress, MemberInvite>,
     }
 
     #[event]
@@ -119,8 +121,7 @@ pub mod MemberManagerComponent {
 
         fn invite_member(
             ref self: ComponentState<TContractState>,
-            fname: felt252,
-            lname: felt252,
+            role: u16, // 0 means contractor, 1 means employee, 2 means admin
             address: ContractAddress,
             renumeration: u256,
         ) -> felt252 {
@@ -132,29 +133,66 @@ pub mod MemberManagerComponent {
             let id: u256 = (self.member_count.read() + 1).into();
             let caller = get_caller_address();
             assert(self.admin_ca.entry(caller).read(), 'UNAUTHORIZED CALLER');
+            assert(role <= 2 && role >= 0, 'Invalid Role');
+            let mut actual_role = MemberRole::EMPLOYEE(1);
+            if (role == 0) { actual_role = MemberRole::CONTRACTOR(1) }
+            if role == 2 { actual_role = MemberRole::ADMIN(1) };
 
-            let new_member = MemberTrait::new(id, fname, lname, Default::default(), '', address, 0);
-            self.members.entry(id).write(new_member);
-            let status: MemberStatus = Default::default();
+
+            // let new_member = MemberTrait::new(id, fname, lname, Default::default(), '', address, 0);
+            // self.members.entry(id).write(new_member);
+            let new_member_invite = MemberInvite {
+                address,
+                role: actual_role,
+                base_pay: renumeration,
+                invite_status: InviteStatus::PENDING,
+                expiry: get_block_timestamp() + 604800, // a week for invite to expire
+            };
+            // let status: MemberStatus = Default::default();
+            self.member_invites.entry(caller).write(new_member_invite);
             let timestamp = get_block_timestamp();
-            let event = MemberEvent { fname, lname, address, status, value: '', timestamp };
+            let event = MemberInvited { address, role: actual_role, timestamp };
             self.emit(MemberEnum::Invited(event));
-
-            // stores and returns a hash, or zero if multisig is switched off.
             0
         }
 
         fn accept_invite(
-            ref self: ComponentState<TContractState>, nonce: felt252, metadataURL: felt252,
-        ) {}
+            ref self: ComponentState<TContractState>, fname: felt252, lname: felt252, alias: felt252
+        ) {
+            let caller = get_caller_address();
+            let current_timestamp = get_block_timestamp();
+            let mut invite = self.member_invites.entry(caller).read();
+            if current_timestamp > invite.expiry {
+                invite.invite_status = InviteStatus::EXPIRED;
+            }
+            assert(invite.invite_status == InviteStatus::PENDING, 'Invite used/expired');
 
-        fn verify_member(
-            ref self: ComponentState<TContractState>, address: ContractAddress,
-        ) { // can be verified only if invitee has accepted, and config is checked.
+            //Signing this function means they accept the invite
+            let id = self.member_count.read() + 1;
+            let member = Member {
+                id,
+                address: caller,
+                status: MemberStatus::ACTIVE,
+                role: invite.role,
+            };
+            let member_details = MemberDetails {
+                fname, lname, alias
+            };
+            let mut member_node = self.members.entry(id);
+            member_node.member.write(member);
+            member_node.details.write(member_details);
+            member_node.base_pay.write(invite.base_pay);
+            member_node.reg_time.write(current_timestamp);
+            member_node.no_of_payouts.write(0);
+        }
+
+        // fn verify_member(
+        //     ref self: ComponentState<TContractState>, address: ContractAddress,
+        //) { // can be verified only if invitee has accepted, and config is checked.
         // at some scenario, the config is checked, and this fuction just returns
         // if config.<param> != that, return;
 
-        }
+        // }
 
         fn update_member_config(ref self: ComponentState<TContractState>, config: MemberConfig) {
             
@@ -180,15 +218,33 @@ pub mod MemberManagerComponent {
 
             let reg_time = get_block_timestamp();
             let role = MemberRole::ADMIN(0);
-            let (new_admin, details) = MemberTrait::with_details(
-                id, fname, lname, status, role, alias, caller,
-            );
-            let new_admin = MemberTrait::new(id, fname, lname, role, alias, caller, reg_time);
-            self.members.entry(id).write(new_admin);
+            // let (new_admin, details) = MemberTrait::with_details(
+            //     id, fname, lname, status, role, alias, caller,
+            // );
+            let new_admin = Member {
+                id,
+                address: caller,
+                status: MemberStatus::ACTIVE,
+                role,
+            };
+            let new_admin_details = MemberDetails {
+                fname, lname, alias,
+            };
+            // let new_admin = MemberTrait::new(id, fname, lname, role, alias, caller, reg_time);
+            
+            let mut new_admin_node = self.members.entry(id);
+
+            // This is where you write to the node
+            new_admin_node.details.write(new_admin_details);
+            new_admin_node.member.write(new_admin);
+            new_admin_node.reg_time.write(reg_time);
+
             self.admin_ca.entry(caller).write(true);
-            let admin_count: u256 = self.admin_count.read().into();
-            self.admins.entry(admin_count + 1).write(new_admin);
+            let admin_count = self.admin_count.read();
+
+            // self.admins.entry(admin_count + 1).write(new_admin);
             self.member_count.write(self.member_count.read() + 1);
+            self.admin_count.write(admin_count + 1);
         }
 
         fn get_role_value(self: @ComponentState<TContractState>, member_id: u256) -> u16 {

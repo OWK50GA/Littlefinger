@@ -9,13 +9,13 @@ pub trait IMemberManager<TContractState> {
     ); //-> u256;
     fn invite_member(
         ref self: TContractState,
-        fname: felt252,
-        lname: felt252,
+        role: u16,
         address: ContractAddress,
         renumeration: u256,
     ) -> felt252;
-    fn accept_invite(ref self: TContractState, nonce: felt252, metadataURL: felt252);
-    fn verify_member(ref self: TContractState, address: ContractAddress);
+    // fn get_member_invite()
+    fn accept_invite(ref self: TContractState, fname: felt252, lname: felt252, alias: felt252);
+    // fn verify_member(ref self: TContractState, address: ContractAddress);
     fn update_member_details(
         ref self: TContractState,
         member_id: u256,
