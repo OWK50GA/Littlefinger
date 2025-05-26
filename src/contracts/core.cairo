@@ -9,8 +9,8 @@ mod Core {
     use starknet::{ClassHash, ContractAddress, get_caller_address, get_block_timestamp, get_contract_address};
     use littlefinger::components::member_manager::MemberManagerComponent;
     use littlefinger::components::organization::OrganizationComponent;
-    use littlefinger::structs::organization::{OrganizationConfig, OrganizationInfo, OwnerInit};
-    use littlefinger::structs::member_structs::{MemberResponse, CONTRACTOR, EMPLOYEE, ADMIN, MemberRoleIntoU16, Member};
+    // use littlefinger::structs::organization::{OrganizationConfig, OrganizationInfo, OwnerInit};
+    use littlefinger::structs::member_structs::{MemberResponse, MemberRoleIntoU16, Member};
     use littlefinger::components::voting::VotingComponent;
     use littlefinger::components::disbursement::DisbursementComponent;
     use littlefinger::interfaces::icore::ICore;

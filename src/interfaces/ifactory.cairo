@@ -27,7 +27,25 @@ pub trait IFactory<T> {
         first_admin_alias: felt252,
         salt: felt252,
     ) -> ContractAddress;
-    fn setup_org(ref self: T);
+    fn setup_org(
+        ref self: T,
+        // class_hash: felt252, //unwrap it into class has using into, and it will be removed once I declare the vault
+        available_funds: u256,
+        starting_bonus_allocation: u256,
+        token: ContractAddress,
+        salt: felt252,
+        // class_hash: felt252,
+        // Needed to initialize the organization component
+        owner: Option<ContractAddress>, 
+        name: ByteArray, 
+        ipfs_url: ByteArray, 
+        // vault_address: ContractAddress,
+        // Needed to initialize the member component
+        first_admin_fname: felt252,
+        first_admin_lname: felt252,
+        first_admin_alias: felt252,
+        // salt: felt252,
+    ) -> (ContractAddress, ContractAddress);
     fn get_deployed_vaults(
         self: @T
     ) -> Array<ContractAddress>;

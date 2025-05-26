@@ -4,9 +4,15 @@ pub mod Factory {
         ContractAddress, get_caller_address, syscalls::deploy_syscall, class_hash::ClassHash, SyscallResultTrait,
         get_block_timestamp
     };
+    use openzeppelin::access::ownable::OwnableComponent;
+    use openzeppelin::upgrades::UpgradeableComponent;
+    use openzeppelin::upgrades::interface::IUpgradeable;
     use starknet::storage::{Map, StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry};
     use littlefinger::interfaces::ifactory::IFactory;
     // use littlefinger::structs::organization::{OrganizationInfo};
+
+    component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
+    component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
 
     #[storage]
     pub struct Storage {
@@ -16,16 +22,65 @@ pub mod Factory {
         vaults_count: u64, //Open to the possibility of an organization somehow having more than one vault
         vault_class_hash: ClassHash,
         org_core_class_hash: ClassHash,
+        #[substorage(v0)]
+        ownable: OwnableComponent::Storage,
+        #[substorage(v0)]
+        upgradeable: UpgradeableComponent::Storage,
+    }
+    
+    #[abi(embed_v0)]
+    impl OwnableMixinImpl = OwnableComponent::OwnableMixinImpl<ContractState>;
+    impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
+
+    impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
+
+    // I actually 
+    const ORG_CORE_CLASS_HASH: felt252 = 0x012a413fb811681055cf9fa3eccddb7e20e6bc08a476442da2743fb660c45945;
+    const VAULT_CLASS_HASH: felt252 = 0x017195343b9bf99c3933a7a998bcba8244d14a95ec35d26afbbfa6bbe4cded8d;
+
+    #[event]
+    #[derive(Drop, starknet::Event)]
+    pub enum Event {
+        #[flat]
+        OwnableEvent: OwnableComponent::Event,
+        #[flat]
+        UpgradeableEvent: UpgradeableComponent::Event,
+        VaultDeployed: VaultDeployed,
+        OrgCoreDeployed: OrgCoreDeployed,
     }
 
+    #[derive(Drop, starknet::Event)]
+    pub struct VaultDeployed {
+        address: ContractAddress,
+        deployed_at: u64,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    pub struct OrgCoreDeployed {
+        address: ContractAddress,
+        deployed_at: u64,
+    }
+    
     #[constructor]
-    fn constructor(ref self: ContractState, vault_class_hash: ClassHash, org_core_class_hash: ClassHash) {
+    fn constructor(ref self: ContractState) {
         self.orgs_count.write(0);
         self.vaults_count.write(0);
+        let vault_class_hash: ClassHash = VAULT_CLASS_HASH.try_into().unwrap();
+        let org_core_class_hash: ClassHash = ORG_CORE_CLASS_HASH.try_into().unwrap();
         self.vault_class_hash.write(vault_class_hash);
         self.org_core_class_hash.write(org_core_class_hash);
     }
 
+    #[abi(embed_v0)]
+    impl UpgradeableImpl of IUpgradeable<ContractState> {
+        fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
+            // This might be upgraded from the factory
+            // self.ownable.assert_only_owner();
+            self.upgradeable.upgrade(new_class_hash);
+        }
+    }
+
+    #[abi(embed_v0)]
     pub impl FactoryImpl of IFactory<ContractState> {
         fn deploy_vault(
             ref self: ContractState,
@@ -52,6 +107,13 @@ pub mod Factory {
             // Update state of storage
             self.vaults_count.write(self.vaults_count.read() + 1);
             self.deployed_vaults.entry(vault_id).write(vault_address);
+
+            self.emit(
+                VaultDeployed {
+                    address: vault_address,
+                    deployed_at: get_block_timestamp(),
+                }
+            );
             
             vault_address
         }
@@ -80,7 +142,7 @@ pub mod Factory {
             if owner.is_some() {
                 viable_owner = owner.unwrap()
             }
-            let current_time = get_block_timestamp();
+            // let current_time = get_block_timestamp();
             // let organization_info = OrganizationInfo {
             //     org_id,
             // let felt_org_id: felt252 = org_id.into();
@@ -110,13 +172,47 @@ pub mod Factory {
             ).unwrap_syscall();
 
             self.deployed_orgs.entry(org_id).write(org_address);
+            self.orgs_count.write(self.orgs_count.read() + 1);
+
+            self.emit(
+                OrgCoreDeployed {
+                    address: org_address,
+                    deployed_at: get_block_timestamp(),
+                }
+            );
 
             org_address
         }
-        fn setup_org(ref self: ContractState) {
-            let deployer = get_caller_address();
 
+        fn setup_org(
+            ref self: ContractState,
+            available_funds: u256,
+            starting_bonus_allocation: u256,
+            token: ContractAddress,
+            salt: felt252,
+            // class_hash: felt252,
+            // Needed to initialize the organization component
+            owner: Option<ContractAddress>, 
+            name: ByteArray, 
+            ipfs_url: ByteArray, 
+            // vault_address: ContractAddress,
+            // Needed to initialize the member component
+            first_admin_fname: felt252,
+            first_admin_lname: felt252,
+            first_admin_alias: felt252,
+            // salt: felt252,
+        ) -> (ContractAddress, ContractAddress) {
+            // let deployer = get_caller_address();
+            let vault_address = self.deploy_vault(
+                available_funds, starting_bonus_allocation, token, salt
+            );
+            let org_core_address = self.deploy_org_core(
+                owner, name, ipfs_url, vault_address, first_admin_fname, first_admin_lname, first_admin_alias, salt
+            );
+
+            (org_core_address, vault_address)
         }
+
         fn get_deployed_vaults(
             self: @ContractState
         ) -> Array<ContractAddress> {
