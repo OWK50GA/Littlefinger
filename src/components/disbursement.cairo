@@ -2,9 +2,9 @@
 pub mod DisbursementComponent {
     use littlefinger::interfaces::idisbursement::IDisbursement;
     use littlefinger::structs::disbursement_structs::{
-        Disbursement, DisbursementSchedule, DisbursementStatus, ScheduleStatus, ScheduleType,
+        Disbursement, DisbursementSchedule, DisbursementStatus, ScheduleStatus, ScheduleType, UnitDisbursement
     };
-    use littlefinger::structs::member_structs::{Member, MemberNode};
+    use littlefinger::structs::member_structs::{Member};
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use starknet::storage::{
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
@@ -19,19 +19,20 @@ pub mod DisbursementComponent {
         disbursement_schedules: Map<felt252, Option<DisbursementSchedule>>,
         current_schedule: DisbursementSchedule,
         failed_disbursements: Map<
-            felt252, Disbursement,
-        > //map disbursement id to a failed disbursement
+            u256, UnitDisbursement,
+        >, //map disbursement id to a failed disbursement
+        schedules_count: u64,
     }
 
     #[embeddable_as(DisbursementManager)]
     pub impl DisbursementImpl<
-        TContractState, +HasComponent<TContractState>, +Drop<TContractState>,
-        impl Member: MemberManagerComponent::HasComponent<TContractState>,
+        TContractState, +HasComponent<TContractState> //, +Drop<TContractState>,
+        //impl Member: MemberManagerComponent::HasComponent<TContractState>,
     > of IDisbursement<ComponentState<TContractState>> {
         fn create_disbursement_schedule(
             ref self: ComponentState<TContractState>,
-            schedule_type: ScheduleType,
-            schedule_id: felt252, // generate schedule_id yourself later
+            schedule_type: u8,
+            // schedule_id: felt252, // generate schedule_id yourself later
             start: u64, //timestamp
             end: u64,
             interval: u64,
@@ -39,14 +40,20 @@ pub mod DisbursementComponent {
             // let caller = get_caller_address();
             // assert(self.authorized_callers.entry(caller).read(), 'Caller Not Permitted');
             self._assert_caller();
-            assert(
-                !self.disbursement_schedules.entry(schedule_id).read().is_some(),
-                'ID already taken',
-            );
+            // assert(
+            //     !self.disbursement_schedules.entry(schedule_id).read().is_some(),
+            //     'ID already taken',
+            // );
+            let schedule_count = self.schedules_count.read();
+            let schedule_id: felt252 = schedule_count.into();
+            let mut processed_schedule_type = ScheduleType::ONETIME;
+            if schedule_type == 0 {
+                processed_schedule_type = ScheduleType::RECURRING;
+            }
             let disbursement_schedule = DisbursementSchedule {
                 schedule_id,
                 status: ScheduleStatus::ACTIVE,
-                schedule_type,
+                schedule_type: processed_schedule_type,
                 start_timestamp: start,
                 end_timestamp: end,
                 interval,
@@ -113,20 +120,45 @@ pub mod DisbursementComponent {
                 .write(Option::Some(disbursement_schedule));
         }
 
+        fn add_failed_disbursement(
+            ref self: ComponentState<TContractState>,member: Member, disbursement_id: u256, timestamp: u64, caller: ContractAddress
+        ) -> bool {
+            let disbursement = UnitDisbursement {
+                caller,
+                timestamp,
+                member
+            };
+            self.failed_disbursements.entry(disbursement_id).write(disbursement);
+            true
+        }
+
+        fn update_current_schedule_last_execution(ref self: ComponentState<TContractState>, timestamp: u64) {
+            self._assert_caller();
+            let mut current_schedule = self.current_schedule.read();
+            current_schedule.last_execution = Option::Some(timestamp);
+            self.current_schedule.write(current_schedule);
+        }
+
+        fn set_current_schedule(ref self: ComponentState<TContractState>, schedule_id: felt252) {
+            self._assert_caller();
+            let schedule = self.disbursement_schedules.entry(schedule_id).read().expect('Schedule not found');
+            assert(schedule.status == ScheduleStatus::ACTIVE, 'Schedule Not Active');
+            self.current_schedule.write(schedule);
+        }
+
         fn get_current_schedule(self: @ComponentState<TContractState>) -> DisbursementSchedule {
             let disbursement_schedule = self.current_schedule.read();
             disbursement_schedule
         }
 
         fn compute_renumeration(
-            // ref self: ComponentState<TContractState>,
             ref self: ComponentState<TContractState>,
             member: Member,
             total_bonus_available: u256,
             total_members_weight: u16,
-            total_funds_available: u256,
+            // total_funds_available: u256
         ) -> u256 {
-            let member_base_pay = member.base_pay;
+             let member_base_pay = member.base_pay;
             let bonus_proportion = member.role.into() / total_members_weight;
             let bonus_pay: u256 = bonus_proportion.into() * total_bonus_available;
 
@@ -244,6 +276,43 @@ pub mod DisbursementComponent {
         fn _assert_caller(ref self: ComponentState<TContractState>) {
             let caller = get_caller_address();
             assert(self.authorized_callers.entry(caller).read(), 'Caller Not Permitted');
+        }
+
+        fn _initialize(
+            ref self: ComponentState<TContractState>,
+            schedule_type: u8,
+            // schedule_id: felt252, // generate schedule_id yourself later
+            start: u64, //timestamp
+            end: u64,
+            interval: u64,
+        ) {
+            // let caller = get_caller_address();
+            // assert(self.authorized_callers.entry(caller).read(), 'Caller Not Permitted');
+            self._assert_caller();
+            // assert(
+            //     !self.disbursement_schedules.entry(schedule_id).read().is_some(),
+            //     'ID already taken',
+            // );
+            let schedule_count = self.schedules_count.read();
+            let schedule_id: felt252 = schedule_count.into();
+            let mut processed_schedule_type = ScheduleType::ONETIME;
+            if schedule_type == 0 {
+                processed_schedule_type = ScheduleType::RECURRING;
+            }
+            let disbursement_schedule = DisbursementSchedule {
+                schedule_id,
+                status: ScheduleStatus::ACTIVE,
+                schedule_type: processed_schedule_type,
+                start_timestamp: start,
+                end_timestamp: end,
+                interval,
+                last_execution: Option::None,
+            };
+            self
+                .disbursement_schedules
+                .entry(schedule_id)
+                .write(Option::Some(disbursement_schedule));
+            self.current_schedule.write(disbursement_schedule);
         }
     }
 }

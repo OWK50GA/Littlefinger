@@ -1,5 +1,5 @@
 use starknet::ContractAddress;
-use starknet::storage::{Mutable, StoragePath};
+use starknet::storage::{Mutable, StoragePath, StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry};
 use super::base::ContractAddressDefault;
 
 #[derive(Copy, Drop, Serde, Default, PartialEq, starknet::Store)]
@@ -37,6 +37,7 @@ pub struct Member {
     pub address: ContractAddress,
     pub status: MemberStatus,
     pub role: MemberRole,
+    pub base_pay: u256,
 }
 
 #[derive(Copy, Drop, Serde, PartialEq, starknet::Store)]
@@ -85,9 +86,9 @@ pub enum MemberRole {
 
 // subject to change, but hard coded for now
 // may be subject to customization
-const CONTRACTOR: u16 = 1; //will use zero to index
-const EMPLOYEE: u16 = 3; // will use one to index
-const ADMIN: u16 = 20; // will use 2 to index
+pub const CONTRACTOR: u16 = 1; //will use zero to index
+pub const EMPLOYEE: u16 = 3; // will use one to index
+pub const ADMIN: u16 = 20; // will use 2 to index
 
 // use a function called get_role_value()
 
@@ -135,8 +136,9 @@ pub impl MemberImpl of MemberTrait {
         role: MemberRole,
         alias: felt252,
         address: ContractAddress,
+        base_pay: u256,
     ) -> (Member, MemberDetails) {
-        let member = Member { id, address, status, role };
+        let member = Member { id, address, status, role, base_pay };
         let details = MemberDetails { fname, lname, alias };
 
         (member, details)
@@ -145,7 +147,7 @@ pub impl MemberImpl of MemberTrait {
     fn suspend(ref self: Member) {
         assert(
             self.status != MemberStatus::SUSPENDED
-                && self.status != MemberStatus::UNVERIFIED
+                // && self.status != MemberStatus::UNVERIFIED
                 && self.status != MemberStatus::REMOVED,
             'Invalid member selection',
         );
@@ -159,14 +161,32 @@ pub impl MemberImpl of MemberTrait {
 
     fn to_response(self: @Member, storage: StoragePath<MemberNode>) -> MemberResponse {
         // Implement To Member Response
-        Default::default()
+        let details = storage.details.read();
+        let member_response = MemberResponse {
+            fname: details.fname,
+            lname: details.lname,
+            alias: details.alias,
+            role: *self.role,
+            id: *self.id,
+            address: *self.address,
+            status: *self.status,
+            base_pay: storage.base_pay.read(),
+            pending_allocations: storage.pending_allocations.read(),
+            total_received: storage.total_received.read(),
+            no_of_payouts: storage.no_of_payouts.read(),
+            last_disbursement_timestamp: storage.last_disbursement_timestamp.read(),
+            total_disbursements: storage.total_disbursements.read(),
+            reg_time: storage.reg_time.read(),
+        };
+        
+        member_response
     }
 }
 
 #[derive(Copy, Drop, Serde, Default, PartialEq, starknet::Store)]
 pub enum MemberStatus {
+    // UNVERIFIED,
     #[default]
-    UNVERIFIED,
     ACTIVE,
     SUSPENDED,
     PROBATION,

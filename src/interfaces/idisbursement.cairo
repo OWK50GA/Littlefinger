@@ -10,8 +10,8 @@ pub trait IDisbursement<T> {
     // disbursement schedule handling
     fn create_disbursement_schedule(
         ref self: T,
-        schedule_type: ScheduleType,
-        schedule_id: felt252,
+        schedule_type: u8,
+        //schedule_id: felt252,
         start: u64, //timestamp
         end: u64,
         interval: u64,
@@ -23,6 +23,9 @@ pub trait IDisbursement<T> {
 
     fn retry_failed_disbursement(ref self: T, schedule_id: felt252);
     fn get_pending_failed_disbursements(self: @T);
+    fn add_failed_disbursement(ref self: T, member: Member, disbursement_id: u256, timestamp: u64, caller: ContractAddress) -> bool;
+    fn update_current_schedule_last_execution(ref self: T, timestamp: u64);
+    fn set_current_schedule(ref self: T, schedule_id: felt252);
 
     // Total members' weight is calculated by adding the weight of all members.
     // It can be a storage variable in the member module to make it easier to handle, concerning gas
@@ -32,7 +35,7 @@ pub trait IDisbursement<T> {
         member: Member,
         total_bonus_available: u256,
         total_members_weight: u16,
-        total_funds_available: u256,
+        // total_funds_available: u256,
     ) -> u256;
 
     // fn disburse(ref self: T, recipients: Array<Member>, token: ContractAddress);

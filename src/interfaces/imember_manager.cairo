@@ -7,6 +7,7 @@ pub trait IMemberManager<TContractState> {
         ref self: TContractState, fname: felt252, lname: felt252, alias: felt252, role: MemberRole,
         // weight: u256
     ); //-> u256;
+    fn add_admin(ref self: TContractState, member_id: u256);
     fn invite_member(
         ref self: TContractState,
         role: u16,
@@ -29,6 +30,7 @@ pub trait IMemberManager<TContractState> {
     );
     fn reinstate_member(ref self: TContractState, member_id: u256);
     fn get_members(self: @TContractState) -> Span<MemberResponse>;
+    fn get_member(self: @TContractState, member_id: u256) -> MemberResponse;
     fn update_member_config(ref self: TContractState, config: MemberConfig);
     // ROLE MANAGEMENT
 
