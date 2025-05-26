@@ -20,6 +20,7 @@ pub mod Vault {
         >, // No 1. Transaction x, no 2, transaction y etc for history, and it begins with 1
         transactions_count: u64,
         vault_status: VaultStatus,
+        token: ContractAddress
     }
 
     #[event]
@@ -76,13 +77,15 @@ pub mod Vault {
     #[constructor]
     fn constructor(
         ref self: ContractState,
+        token: ContractAddress,
         available_funds: u256,
         bonus_allocation: u256,
-        token: ContractAddress,
     ) {
         self.available_funds.write(available_funds);
-        self.total_bonus_available.write(bonus_allocation);
+        self.total_bonus.write(bonus_allocation);
         self.token.write(token);
+        let caller = get_caller_address();
+        self.permitted_addresses.entry(caller).write(true);
     }
 
     // TODO:
@@ -164,6 +167,12 @@ pub mod Vault {
             self.available_funds.read()
         }
 
+        fn get_bonus_allocation(self: @ContractState) -> u256 {
+            let caller = get_caller_address();
+            assert(self.permitted_addresses.entry(caller).read(), 'Caller Not Permitted');
+            self.total_bonus.read()
+        }
+
         fn pay_member(ref self: ContractState, recipient: ContractAddress, amount: u256) -> bool {
             let caller = get_caller_address();
             assert(self.permitted_addresses.entry(caller).read(), 'Caller Not Permitted');
@@ -207,7 +216,7 @@ pub mod Vault {
             self
                 .emit(
                     TransactionRecorded {
-                        transaction_type, caller, transaction_details: transaction,
+                        transaction_type, caller, transaction_details: transaction, token: token_address
                     },
                 );
         }

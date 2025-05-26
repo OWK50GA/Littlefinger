@@ -1,4 +1,5 @@
 use starknet::ContractAddress;
+use littlefinger::structs::member_structs::Member;
 
 #[derive(Copy, Drop, Serde, PartialEq, Debug, starknet::Store)]
 pub struct DisbursementSchedule {
@@ -21,6 +22,13 @@ pub struct Disbursement {
     // disbursement_status: DisbursementStatus
 }
 
+#[derive(Copy, Drop, Serde, PartialEq, starknet::Store)]
+pub struct UnitDisbursement {
+    pub caller: ContractAddress,
+    pub timestamp: u64,
+    pub member: Member,
+}
+
 #[derive(Copy, Drop, Serde, PartialEq, Debug, starknet::Store)]
 pub enum DisbursementStatus {
     #[default]
@@ -30,9 +38,9 @@ pub enum DisbursementStatus {
 
 #[derive(Copy, Drop, Serde, PartialEq, Debug, starknet::Store)]
 pub enum ScheduleType {
-    RECURRING,
+    RECURRING, //1
     #[default]
-    ONETIME,
+    ONETIME, //1
     // TODO:
 // We have to come up with how to implement this conditional. Off the top of my head, it could
 // be other people validating your work, meaning it should be for the more decentralized scheme

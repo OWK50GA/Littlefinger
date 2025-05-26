@@ -54,12 +54,30 @@ pub mod MemberManagerComponent {
             let member = self.members.entry(id);
 
             let (new_member, details) = MemberTrait::with_details(
-                id, fname, lname, status, role, alias, caller,
+                id, fname, lname, status, role, alias, caller, 0
             );
             member.details.write(details);
             member.member.write(new_member);
             member.reg_time.write(reg_time);
             self.member_count.write(id);
+        }
+
+        fn add_admin(ref self: ComponentState<TContractState>, member_id: u256) {
+            let caller = get_caller_address();
+            assert(self.admin_ca.entry(caller).read(), 'Caller Not an Admin');
+            let member_node = self.members.entry(member_id);
+            let mut member = member_node.member.read();
+            let old_role = member.role; 
+
+            //TODO: When you add events to this, you'll get something from here
+
+            member.role = MemberRole::ADMIN(1);
+            self.admin_ca.entry(member.address).write(true);
+            self.admin_count.write(self.admin_count.read() + 1);
+
+            member_node.member.write(member);
+
+            // EMIT THE EVENT HERE
         }
 
         fn update_member_details(
@@ -174,6 +192,7 @@ pub mod MemberManagerComponent {
                 address: caller,
                 status: MemberStatus::ACTIVE,
                 role: invite.role,
+                base_pay: invite.base_pay,
             };
             let member_details = MemberDetails {
                 fname, lname, alias
@@ -184,8 +203,14 @@ pub mod MemberManagerComponent {
             member_node.base_pay.write(invite.base_pay);
             member_node.reg_time.write(current_timestamp);
             member_node.no_of_payouts.write(0);
+            self.member_count.write(self.member_count.read() + 1);
         }
 
+        fn get_member(self: @ComponentState<TContractState>, member_id: u256) -> MemberResponse {
+            let member_ref = self.members.entry(member_id);
+            let member = member_ref.member.read();
+            member.to_response(member_ref)
+        }
         // fn verify_member(
         //     ref self: ComponentState<TContractState>, address: ContractAddress,
         //) { // can be verified only if invitee has accepted, and config is checked.
@@ -202,14 +227,14 @@ pub mod MemberManagerComponent {
     // this might init the public key, where necessary
     #[generate_trait]
     pub impl InternalImpl<
-        TContractState, +HasComponent<ComponentState<TContractState>>,
-    > of InternalTrait<TContractState> {
-        fn initializer(
+        TContractState, +HasComponent<TContractState>,
+    > of MemberInternalTrait<TContractState> {
+        fn _initialize(
             ref self: ComponentState<TContractState>,
             fname: felt252,
             lname: felt252,
             alias: felt252,
-            config: MemberConfig,
+            // config: MemberConfig,
         ) {
             // This will be for making admins and giving people control/taking it away
             let caller = get_caller_address();
@@ -226,6 +251,7 @@ pub mod MemberManagerComponent {
                 address: caller,
                 status: MemberStatus::ACTIVE,
                 role,
+                base_pay: 0
             };
             let new_admin_details = MemberDetails {
                 fname, lname, alias,
