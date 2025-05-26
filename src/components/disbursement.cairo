@@ -156,7 +156,7 @@ pub mod DisbursementComponent {
             member: Member,
             total_bonus_available: u256,
             total_members_weight: u16,
-            total_funds_available: u256
+            // total_funds_available: u256
         ) -> u256 {
              let member_base_pay = member.base_pay;
             let bonus_proportion = member.role.into() / total_members_weight;

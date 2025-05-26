@@ -35,8 +35,8 @@ pub mod Factory {
     impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
 
     // I actually 
-    const ORG_CORE_CLASS_HASH: felt252 = 0x012a413fb811681055cf9fa3eccddb7e20e6bc08a476442da2743fb660c45945;
-    const VAULT_CLASS_HASH: felt252 = 0x017195343b9bf99c3933a7a998bcba8244d14a95ec35d26afbbfa6bbe4cded8d;
+    // const ORG_CORE_CLASS_HASH: felt252 = 0x012a413fb811681055cf9fa3eccddb7e20e6bc08a476442da2743fb660c45945;
+    // const VAULT_CLASS_HASH: felt252 = 0x017195343b9bf99c3933a7a998bcba8244d14a95ec35d26afbbfa6bbe4cded8d;
 
     #[event]
     #[derive(Drop, starknet::Event)]
@@ -62,26 +62,90 @@ pub mod Factory {
     }
     
     #[constructor]
-    fn constructor(ref self: ContractState) {
+    fn constructor(
+        ref self: ContractState, 
+        owner: ContractAddress,
+        org_core_class_hash: felt252,
+        vault_class_hash: felt252
+    ) {
         self.orgs_count.write(0);
         self.vaults_count.write(0);
-        let vault_class_hash: ClassHash = VAULT_CLASS_HASH.try_into().unwrap();
-        let org_core_class_hash: ClassHash = ORG_CORE_CLASS_HASH.try_into().unwrap();
+        let vault_class_hash: ClassHash = vault_class_hash.try_into().unwrap();
+        let org_core_class_hash: ClassHash = org_core_class_hash.try_into().unwrap();
         self.vault_class_hash.write(vault_class_hash);
         self.org_core_class_hash.write(org_core_class_hash);
+        self.ownable.initializer(owner);
     }
 
     #[abi(embed_v0)]
     impl UpgradeableImpl of IUpgradeable<ContractState> {
         fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
             // This might be upgraded from the factory
-            // self.ownable.assert_only_owner();
+            self.ownable.assert_only_owner();
             self.upgradeable.upgrade(new_class_hash);
         }
     }
 
     #[abi(embed_v0)]
     pub impl FactoryImpl of IFactory<ContractState> {
+        fn setup_org(
+            ref self: ContractState,
+            available_funds: u256,
+            starting_bonus_allocation: u256,
+            token: ContractAddress,
+            salt: felt252,
+            // class_hash: felt252,
+            // Needed to initialize the organization component
+            owner: Option<ContractAddress>, 
+            name: ByteArray, 
+            ipfs_url: ByteArray, 
+            // vault_address: ContractAddress,
+            // Needed to initialize the member component
+            first_admin_fname: felt252,
+            first_admin_lname: felt252,
+            first_admin_alias: felt252,
+            // salt: felt252,
+        ) -> (ContractAddress, ContractAddress) {
+            // let deployer = get_caller_address();
+            let vault_address = self.deploy_vault(
+                available_funds, starting_bonus_allocation, token, salt
+            );
+            let org_core_address = self.deploy_org_core(
+                owner, name, ipfs_url, vault_address, first_admin_fname, first_admin_lname, first_admin_alias, salt
+            );
+
+            (org_core_address, vault_address)
+        }
+
+        fn get_deployed_vaults(
+            self: @ContractState
+        ) -> Array<ContractAddress> {
+            let mut vaults = array![];
+            let vaults_count: u256 = (self.vaults_count.read()).try_into().unwrap();
+
+            for i in 1..(vaults_count + 1) {
+                let current_vault = self.deployed_vaults.entry(i).read();
+                vaults.append(current_vault);
+            }
+            vaults
+        }
+        fn get_deployed_org_cores(self: @ContractState) -> Array<ContractAddress> {
+            let mut orgs = array![];
+            let orgs_count: u256 = (self.orgs_count.read()).try_into().unwrap();
+
+            for i in 1..(orgs_count + 1) {
+                let current_org_core = self.deployed_orgs.entry(i).read();
+                orgs.append(current_org_core);
+            }
+            orgs
+        }
+        // fn get_vault_org_pairs(self: @ContractState) -> Array<(ContractAddress, ContractAddress)> {
+
+        // }
+    }
+
+    #[generate_trait]
+    pub impl InternalImpl of InternalTrait {
         fn deploy_vault(
             ref self: ContractState,
             // class_hash: felt252, //unwrap it into class has using into, and it will be removed once I declare the vault
@@ -183,60 +247,5 @@ pub mod Factory {
 
             org_address
         }
-
-        fn setup_org(
-            ref self: ContractState,
-            available_funds: u256,
-            starting_bonus_allocation: u256,
-            token: ContractAddress,
-            salt: felt252,
-            // class_hash: felt252,
-            // Needed to initialize the organization component
-            owner: Option<ContractAddress>, 
-            name: ByteArray, 
-            ipfs_url: ByteArray, 
-            // vault_address: ContractAddress,
-            // Needed to initialize the member component
-            first_admin_fname: felt252,
-            first_admin_lname: felt252,
-            first_admin_alias: felt252,
-            // salt: felt252,
-        ) -> (ContractAddress, ContractAddress) {
-            // let deployer = get_caller_address();
-            let vault_address = self.deploy_vault(
-                available_funds, starting_bonus_allocation, token, salt
-            );
-            let org_core_address = self.deploy_org_core(
-                owner, name, ipfs_url, vault_address, first_admin_fname, first_admin_lname, first_admin_alias, salt
-            );
-
-            (org_core_address, vault_address)
-        }
-
-        fn get_deployed_vaults(
-            self: @ContractState
-        ) -> Array<ContractAddress> {
-            let mut vaults = array![];
-            let vaults_count: u256 = (self.vaults_count.read()).try_into().unwrap();
-
-            for i in 1..vaults_count {
-                let current_vault = self.deployed_vaults.entry(i).read();
-                vaults.append(current_vault);
-            }
-            vaults
-        }
-        fn get_deployed_org_cores(self: @ContractState) -> Array<ContractAddress> {
-            let mut orgs = array![];
-            let orgs_count: u256 = (self.orgs_count.read()).try_into().unwrap();
-
-            for i in 1..orgs_count {
-                let current_org_core = self.deployed_orgs.entry(i).read();
-                orgs.append(current_org_core);
-            }
-            orgs
-        }
-        // fn get_vault_org_pairs(self: @ContractState) -> Array<(ContractAddress, ContractAddress)> {
-
-        // }
     }
 }

@@ -109,6 +109,7 @@ mod Core {
         self.disbursement._add_authorized_caller(deployer);
         let this_contract = get_contract_address();
         self.disbursement._add_authorized_caller(this_contract);
+        self.ownable.initializer(owner);
     }
 
     #[abi(embed_v0)]
@@ -140,7 +141,7 @@ mod Core {
             self.disbursement._initialize(schedule_type, start, end, interval)
         }
 
-        fn shcedule_payout(ref self: ContractState, members: Array<MemberResponse>) {
+        fn schedule_payout(ref self: ContractState) {
             let caller = get_caller_address();
             let members = self.member.get_members();
             let no_of_members = members.len();
@@ -186,7 +187,7 @@ mod Core {
                     base_pay: current_member_response.base_pay
                 };
                 let amount = self.disbursement.compute_renumeration(
-                    pseudo_current_member, total_bonus ,total_weight, total_funds
+                    pseudo_current_member, total_bonus ,total_weight
                 );
                 let timestamp = get_block_timestamp();
                 let transfer = vault_dispatcher.pay_member(pseudo_current_member.address, amount);
