@@ -3,7 +3,7 @@ use starknet::ContractAddress;
 
 #[derive(Copy, Drop, Serde, PartialEq, Debug, starknet::Store)]
 pub struct DisbursementSchedule {
-    pub schedule_id: felt252,
+    pub schedule_id: u64,
     // is_active: bool,
     pub status: ScheduleStatus,
     pub schedule_type: ScheduleType,
