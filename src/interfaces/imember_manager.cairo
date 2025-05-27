@@ -9,10 +9,7 @@ pub trait IMemberManager<TContractState> {
     ); //-> u256;
     fn add_admin(ref self: TContractState, member_id: u256);
     fn invite_member(
-        ref self: TContractState,
-        role: u16,
-        address: ContractAddress,
-        renumeration: u256,
+        ref self: TContractState, role: u16, address: ContractAddress, renumeration: u256,
     ) -> felt252;
     // fn get_member_invite()
     fn accept_invite(ref self: TContractState, fname: felt252, lname: felt252, alias: felt252);
@@ -24,6 +21,12 @@ pub trait IMemberManager<TContractState> {
         lname: Option<felt252>,
         alias: Option<felt252>,
     );
+    // pub id: u256,
+    // pub address: ContractAddress,
+    // pub status: MemberStatus,
+    // pub role: MemberRole,
+    // pub base_pay: u256,
+    fn update_member_base_pay(ref self: TContractState, member_id: u256, base_pay: u256);
     fn suspend_member(
         ref self: TContractState,
         member_id: u256 // suspension_duration: u64 //block timestamp operation

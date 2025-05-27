@@ -1,5 +1,7 @@
 use starknet::ContractAddress;
-use starknet::storage::{Mutable, StoragePath, StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry};
+use starknet::storage::{
+    Mutable, StoragePath, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
+};
 use super::base::ContractAddressDefault;
 
 #[derive(Copy, Drop, Serde, Default, PartialEq, starknet::Store)]
@@ -56,7 +58,7 @@ pub enum InviteStatus {
     PENDING,
     ACCEPTED,
     REJECTED,
-    EXPIRED
+    EXPIRED,
 }
 
 #[starknet::storage_node]
@@ -146,9 +148,8 @@ pub impl MemberImpl of MemberTrait {
 
     fn suspend(ref self: Member) {
         assert(
-            self.status != MemberStatus::SUSPENDED
-                // && self.status != MemberStatus::UNVERIFIED
-                && self.status != MemberStatus::REMOVED,
+            self.status != MemberStatus::SUSPENDED // && self.status != MemberStatus::UNVERIFIED
+            && self.status != MemberStatus::REMOVED,
             'Invalid member selection',
         );
         self.status = MemberStatus::SUSPENDED;
@@ -178,7 +179,7 @@ pub impl MemberImpl of MemberTrait {
             total_disbursements: storage.total_disbursements.read(),
             reg_time: storage.reg_time.read(),
         };
-        
+
         member_response
     }
 }
