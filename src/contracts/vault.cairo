@@ -20,7 +20,7 @@ pub mod Vault {
         >, // No 1. Transaction x, no 2, transaction y etc for history, and it begins with 1
         transactions_count: u64,
         vault_status: VaultStatus,
-        token: ContractAddress
+        token: ContractAddress,
     }
 
     #[event]
@@ -216,7 +216,10 @@ pub mod Vault {
             self
                 .emit(
                     TransactionRecorded {
-                        transaction_type, caller, transaction_details: transaction, token: token_address
+                        transaction_type,
+                        caller,
+                        transaction_details: transaction,
+                        token: token_address,
                     },
                 );
         }

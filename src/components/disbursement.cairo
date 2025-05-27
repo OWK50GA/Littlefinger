@@ -2,9 +2,10 @@
 pub mod DisbursementComponent {
     use littlefinger::interfaces::idisbursement::IDisbursement;
     use littlefinger::structs::disbursement_structs::{
-        Disbursement, DisbursementSchedule, DisbursementStatus, ScheduleStatus, ScheduleType, UnitDisbursement
+        Disbursement, DisbursementSchedule, DisbursementStatus, ScheduleStatus, ScheduleType,
+        UnitDisbursement,
     };
-    use littlefinger::structs::member_structs::{Member};
+    use littlefinger::structs::member_structs::Member;
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use starknet::storage::{
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
@@ -122,18 +123,20 @@ pub mod DisbursementComponent {
         }
 
         fn add_failed_disbursement(
-            ref self: ComponentState<TContractState>,member: Member, disbursement_id: u256, timestamp: u64, caller: ContractAddress
+            ref self: ComponentState<TContractState>,
+            member: Member,
+            disbursement_id: u256,
+            timestamp: u64,
+            caller: ContractAddress,
         ) -> bool {
-            let disbursement = UnitDisbursement {
-                caller,
-                timestamp,
-                member
-            };
+            let disbursement = UnitDisbursement { caller, timestamp, member };
             self.failed_disbursements.entry(disbursement_id).write(disbursement);
             true
         }
 
-        fn update_current_schedule_last_execution(ref self: ComponentState<TContractState>, timestamp: u64) {
+        fn update_current_schedule_last_execution(
+            ref self: ComponentState<TContractState>, timestamp: u64,
+        ) {
             self._assert_caller();
             let mut current_schedule = self.current_schedule.read();
             current_schedule.last_execution = Option::Some(timestamp);
@@ -142,7 +145,11 @@ pub mod DisbursementComponent {
 
         fn set_current_schedule(ref self: ComponentState<TContractState>, schedule_id: felt252) {
             self._assert_caller();
-            let schedule = self.disbursement_schedules.entry(schedule_id).read().expect('Schedule not found');
+            let schedule = self
+                .disbursement_schedules
+                .entry(schedule_id)
+                .read()
+                .expect('Schedule not found');
             assert(schedule.status == ScheduleStatus::ACTIVE, 'Schedule Not Active');
             self.current_schedule.write(schedule);
         }
@@ -159,7 +166,7 @@ pub mod DisbursementComponent {
             total_members_weight: u16,
             // total_funds_available: u256
         ) -> u256 {
-             let member_base_pay = member.base_pay;
+            let member_base_pay = member.base_pay;
             let bonus_proportion = member.role.into() / total_members_weight;
             let bonus_pay: u256 = bonus_proportion.into() * total_bonus_available;
 

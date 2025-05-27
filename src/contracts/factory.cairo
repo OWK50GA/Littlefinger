@@ -1,14 +1,15 @@
 #[starknet::contract]
 pub mod Factory {
-    use starknet::{
-        ContractAddress, get_caller_address, syscalls::deploy_syscall, class_hash::ClassHash, SyscallResultTrait,
-        get_block_timestamp
-    };
+    use littlefinger::interfaces::ifactory::IFactory;
     use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::upgrades::UpgradeableComponent;
     use openzeppelin::upgrades::interface::IUpgradeable;
-    use starknet::storage::{Map, StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry};
-    use littlefinger::interfaces::ifactory::IFactory;
+    use starknet::class_hash::ClassHash;
+    use starknet::storage::{
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
+    };
+    use starknet::syscalls::deploy_syscall;
+    use starknet::{ContractAddress, SyscallResultTrait, get_block_timestamp, get_caller_address};
     // use littlefinger::structs::organization::{OrganizationInfo};
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
@@ -28,16 +29,18 @@ pub mod Factory {
         #[substorage(v0)]
         upgradeable: UpgradeableComponent::Storage,
     }
-    
+
     #[abi(embed_v0)]
     impl OwnableMixinImpl = OwnableComponent::OwnableMixinImpl<ContractState>;
     impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
 
     impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
 
-    // I actually 
-    // const ORG_CORE_CLASS_HASH: felt252 = 0x012a413fb811681055cf9fa3eccddb7e20e6bc08a476442da2743fb660c45945;
-    // const VAULT_CLASS_HASH: felt252 = 0x017195343b9bf99c3933a7a998bcba8244d14a95ec35d26afbbfa6bbe4cded8d;
+    // I actually
+    // const ORG_CORE_CLASS_HASH: felt252 =
+    // 0x012a413fb811681055cf9fa3eccddb7e20e6bc08a476442da2743fb660c45945;
+    // const VAULT_CLASS_HASH: felt252 =
+    // 0x017195343b9bf99c3933a7a998bcba8244d14a95ec35d26afbbfa6bbe4cded8d;
 
     #[event]
     #[derive(Drop, starknet::Event)]
@@ -61,13 +64,13 @@ pub mod Factory {
         address: ContractAddress,
         deployed_at: u64,
     }
-    
+
     #[constructor]
     fn constructor(
-        ref self: ContractState, 
+        ref self: ContractState,
         owner: ContractAddress,
         org_core_class_hash: felt252,
-        vault_class_hash: felt252
+        vault_class_hash: felt252,
     ) {
         self.orgs_count.write(0);
         self.vaults_count.write(0);
@@ -119,9 +122,7 @@ pub mod Factory {
             (org_core_address, vault_address)
         }
 
-        fn get_deployed_vaults(
-            self: @ContractState
-        ) -> Array<ContractAddress> {
+        fn get_deployed_vaults(self: @ContractState) -> Array<ContractAddress> {
             let mut vaults = array![];
             let vaults_count: u256 = (self.vaults_count.read()).try_into().unwrap();
 
@@ -141,6 +142,17 @@ pub mod Factory {
             }
             orgs
         }
+
+        fn update_class_hash(ref self: ContractState, vault_hash: Option<ClassHash>, core_hash: Option<ClassHash>) {
+            self.ownable.assert_only_owner();
+            if let Option::Some(hash) = vault_hash {
+                self.vault_class_hash.write(hash);
+            }
+            if let Option::Some(hash) = core_hash {
+                self.org_core_class_hash.write(hash)
+            }
+        }
+
         fn get_vault_org_pair(self: @ContractState, caller: ContractAddress) -> (ContractAddress, ContractAddress) {
             let vault_org_pair = self.vault_org_pairs.entry(caller).read();
             vault_org_pair
@@ -151,7 +163,8 @@ pub mod Factory {
     pub impl InternalImpl of InternalTrait {
         fn deploy_vault(
             ref self: ContractState,
-            // class_hash: felt252, //unwrap it into class has using into, and it will be removed once I declare the vault
+            // class_hash: felt252, //unwrap it into class has using into, and it will be removed
+            // once I declare the vault
             available_funds: u256,
             starting_bonus_allocation: u256,
             token: ContractAddress,
@@ -167,7 +180,10 @@ pub mod Factory {
             // Deploy the Vault
             let processed_class_hash: ClassHash = self.vault_class_hash.read();
             let result = deploy_syscall(
-                processed_class_hash, salt, constructor_calldata.span(), false //Have to recheck if this is the right value, and why
+                processed_class_hash,
+                salt,
+                constructor_calldata.span(),
+                false //Have to recheck if this is the right value, and why
             );
             let (vault_address, _) = result.unwrap_syscall();
 
@@ -175,19 +191,15 @@ pub mod Factory {
             self.vaults_count.write(self.vaults_count.read() + 1);
             self.deployed_vaults.entry(vault_id).write(vault_address);
 
-            self.emit(
-                VaultDeployed {
-                    address: vault_address,
-                    deployed_at: get_block_timestamp(),
-                }
-            );
-            
+            self.emit(VaultDeployed { address: vault_address, deployed_at: get_block_timestamp() });
+
             vault_address
         }
 
         // Initialize organization
         // Initialize member
-        // If custom owner is not supplied at deployment, deployer is used as owner, and becomes the first admin
+        // If custom owner is not supplied at deployment, deployer is used as owner, and becomes the
+        // first admin
         fn deploy_org_core(
             ref self: ContractState,
             // class_hash: felt252,
@@ -236,18 +248,14 @@ pub mod Factory {
 
             // Deploy contract
             let (org_address, _) = deploy_syscall(
-                processed_class_hash, salt, constructor_calldata.span(), false
-            ).unwrap_syscall();
+                processed_class_hash, salt, constructor_calldata.span(), false,
+            )
+                .unwrap_syscall();
 
             self.deployed_orgs.entry(org_id).write(org_address);
             self.orgs_count.write(self.orgs_count.read() + 1);
 
-            self.emit(
-                OrgCoreDeployed {
-                    address: org_address,
-                    deployed_at: get_block_timestamp(),
-                }
-            );
+            self.emit(OrgCoreDeployed { address: org_address, deployed_at: get_block_timestamp() });
 
             org_address
         }

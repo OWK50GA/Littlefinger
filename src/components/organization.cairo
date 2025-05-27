@@ -3,7 +3,7 @@ pub mod OrganizationComponent {
     use starknet::storage::{
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
-    use starknet::{ContractAddress, get_caller_address, get_block_timestamp};
+    use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
     // use crate::interfaces::icore::IConfig;
     use crate::interfaces::iorganization::IOrganization;
     // use crate::structs::member_structs::MemberTrait;
@@ -17,7 +17,6 @@ pub mod OrganizationComponent {
         pub commitee: Map<ContractAddress, u16>, // address -> level of power
         pub config: OrganizationConfigNode, // refactor to OrganizationConfig
         pub org_info: OrganizationInfo,
-
     }
 
     #[event]
@@ -31,7 +30,9 @@ pub mod OrganizationComponent {
         +Drop<TContractState>,
         impl Member: MemberManagerComponent::HasComponent<TContractState>,
     > of IOrganization<ComponentState<TContractState>> {
-        fn transfer_organization_claim(ref self: ComponentState<TContractState>, to: ContractAddress) {}
+        fn transfer_organization_claim(
+            ref self: ComponentState<TContractState>, to: ContractAddress,
+        ) {}
         fn adjust_committee(
             ref self: ComponentState<TContractState>,
             add: Array<ContractAddress>,
@@ -39,7 +40,9 @@ pub mod OrganizationComponent {
         ) { // any one subtracted, power would be taken down to zero.
         }
 
-        fn update_organization_config(ref self: ComponentState<TContractState>, config: OrganizationConfig) {}
+        fn update_organization_config(
+            ref self: ComponentState<TContractState>, config: OrganizationConfig,
+        ) {}
         fn get_organization_details(self: @ComponentState<TContractState>) -> OrganizationInfo {
             self.org_info.read()
         }
@@ -47,20 +50,19 @@ pub mod OrganizationComponent {
 
     #[generate_trait]
     pub impl InternalImpl<
-        TContractState,
-        +HasComponent<TContractState>,
+        TContractState, +HasComponent<TContractState>,
         // +Drop<TContractState>,
-        // impl Member: MemberManagerComponent::HasComponent<TContractState>,
+    // impl Member: MemberManagerComponent::HasComponent<TContractState>,
     > of OrganizationInternalTrait<TContractState> {
         fn _init(
-            ref self: ComponentState<TContractState>, 
-            owner: Option<ContractAddress>, 
-            name: ByteArray, 
-            ipfs_url: ByteArray, 
+            ref self: ComponentState<TContractState>,
+            owner: Option<ContractAddress>,
+            name: ByteArray,
+            ipfs_url: ByteArray,
             vault_address: ContractAddress,
             org_id: u256,
             // organization_info: OrganizationInfo,
-            deployer: ContractAddress
+            deployer: ContractAddress,
         ) {
             let caller = get_caller_address();
             let mut ascribed_owner = caller;
@@ -75,7 +77,7 @@ pub mod OrganizationComponent {
                 owner: ascribed_owner,
                 ipfs_url,
                 vault_address,
-                created_at: current_timestamp
+                created_at: current_timestamp,
             };
             self.org_info.write(organization_info);
             self.deployer.write(deployer);

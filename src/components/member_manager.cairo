@@ -4,8 +4,9 @@ pub mod MemberManagerComponent {
     // use littlefinger::interfaces::icore::IConfig;
     use littlefinger::interfaces::imember_manager::IMemberManager;
     use littlefinger::structs::member_structs::{
-        MemberEnum, MemberEvent, MemberNode, MemberResponse, MemberRole, MemberStatus, MemberTrait, MemberConfig, 
-        MemberConfigNode, Member, MemberDetails, MemberInvite, MemberInvited, InviteStatus
+        InviteStatus, Member, MemberConfig, MemberConfigNode, MemberDetails, MemberEnum,
+        MemberEvent, MemberInvite, MemberInvited, MemberNode, MemberResponse, MemberRole,
+        MemberStatus, MemberTrait,
     };
     use starknet::storage::{
         Map, MutableVecTrait, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
@@ -16,12 +17,12 @@ pub mod MemberManagerComponent {
     #[storage]
     pub struct Storage {
         pub admin_count: u64,
-        pub admin_ca: Map::<ContractAddress, bool>,
-        pub members: Map::<u256, MemberNode>,
+        pub admin_ca: Map<ContractAddress, bool>,
+        pub members: Map<u256, MemberNode>,
         pub member_count: u256,
         pub role_value: Vec<u16>,
         pub config: MemberConfigNode,
-        pub member_invites: Map::<ContractAddress, MemberInvite>,
+        pub member_invites: Map<ContractAddress, MemberInvite>,
     }
 
     #[event]
@@ -54,7 +55,7 @@ pub mod MemberManagerComponent {
             let member = self.members.entry(id);
 
             let (new_member, details) = MemberTrait::with_details(
-                id, fname, lname, status, role, alias, caller, 0
+                id, fname, lname, status, role, alias, caller, 0,
             );
             member.details.write(details);
             member.member.write(new_member);
@@ -67,7 +68,7 @@ pub mod MemberManagerComponent {
             assert(self.admin_ca.entry(caller).read(), 'Caller Not an Admin');
             let member_node = self.members.entry(member_id);
             let mut member = member_node.member.read();
-            let old_role = member.role; 
+            let old_role = member.role;
 
             //TODO: When you add events to this, you'll get something from here
 
@@ -76,7 +77,6 @@ pub mod MemberManagerComponent {
             self.admin_count.write(self.admin_count.read() + 1);
 
             member_node.member.write(member);
-
             // EMIT THE EVENT HERE
         }
 
@@ -107,6 +107,18 @@ pub mod MemberManagerComponent {
             }
 
             m.details.write(details);
+        }
+
+        fn update_member_base_pay(
+            ref self: ComponentState<TContractState>, member_id: u256, base_pay: u256,
+        ) {
+            let caller = get_caller_address();
+            assert(self.admin_ca.entry(caller).read(), 'UNAUTHORIZED');
+            let member_node = self.members.entry(member_id);
+            let mut member = member_node.member.read();
+            assert(member.is_member(), 'INVALID MEMBER ID');
+            member.base_pay = base_pay;
+            member_node.member.write(member);
         }
 
         fn suspend_member(
@@ -153,18 +165,22 @@ pub mod MemberManagerComponent {
             assert(self.admin_ca.entry(caller).read(), 'UNAUTHORIZED CALLER');
             assert(role <= 2 && role >= 0, 'Invalid Role');
             let mut actual_role = MemberRole::EMPLOYEE(1);
-            if (role == 0) { actual_role = MemberRole::CONTRACTOR(1) }
-            if role == 2 { actual_role = MemberRole::ADMIN(1) };
+            if (role == 0) {
+                actual_role = MemberRole::CONTRACTOR(1)
+            }
+            if role == 2 {
+                actual_role = MemberRole::ADMIN(1)
+            }
 
-
-            // let new_member = MemberTrait::new(id, fname, lname, Default::default(), '', address, 0);
+            // let new_member = MemberTrait::new(id, fname, lname, Default::default(), '', address,
+            // 0);
             // self.members.entry(id).write(new_member);
             let new_member_invite = MemberInvite {
                 address,
                 role: actual_role,
                 base_pay: renumeration,
                 invite_status: InviteStatus::PENDING,
-                expiry: get_block_timestamp() + 604800, // a week for invite to expire
+                expiry: get_block_timestamp() + 604800 // a week for invite to expire
             };
             // let status: MemberStatus = Default::default();
             self.member_invites.entry(caller).write(new_member_invite);
@@ -175,7 +191,10 @@ pub mod MemberManagerComponent {
         }
 
         fn accept_invite(
-            ref self: ComponentState<TContractState>, fname: felt252, lname: felt252, alias: felt252
+            ref self: ComponentState<TContractState>,
+            fname: felt252,
+            lname: felt252,
+            alias: felt252,
         ) {
             let caller = get_caller_address();
             let current_timestamp = get_block_timestamp();
@@ -194,9 +213,7 @@ pub mod MemberManagerComponent {
                 role: invite.role,
                 base_pay: invite.base_pay,
             };
-            let member_details = MemberDetails {
-                fname, lname, alias
-            };
+            let member_details = MemberDetails { fname, lname, alias };
             let mut member_node = self.members.entry(id);
             member_node.member.write(member);
             member_node.details.write(member_details);
@@ -219,9 +236,7 @@ pub mod MemberManagerComponent {
 
         // }
 
-        fn update_member_config(ref self: ComponentState<TContractState>, config: MemberConfig) {
-            
-        }
+        fn update_member_config(ref self: ComponentState<TContractState>, config: MemberConfig) {}
     }
 
     // this might init the public key, where necessary
@@ -247,17 +262,11 @@ pub mod MemberManagerComponent {
             //     id, fname, lname, status, role, alias, caller,
             // );
             let new_admin = Member {
-                id,
-                address: caller,
-                status: MemberStatus::ACTIVE,
-                role,
-                base_pay: 0
+                id, address: caller, status: MemberStatus::ACTIVE, role, base_pay: 0,
             };
-            let new_admin_details = MemberDetails {
-                fname, lname, alias,
-            };
+            let new_admin_details = MemberDetails { fname, lname, alias };
             // let new_admin = MemberTrait::new(id, fname, lname, role, alias, caller, reg_time);
-            
+
             let mut new_admin_node = self.members.entry(id);
 
             // This is where you write to the node

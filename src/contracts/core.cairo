@@ -1,21 +1,23 @@
 #[starknet::contract]
 mod Core {
-    use starknet::storage::StoragePointerWriteAccess;
-    use OrganizationComponent::OrganizationInternalTrait;
     use MemberManagerComponent::MemberInternalTrait;
+    use OrganizationComponent::OrganizationInternalTrait;
+    use littlefinger::components::disbursement::DisbursementComponent;
+    use littlefinger::components::member_manager::MemberManagerComponent;
+    use littlefinger::components::organization::OrganizationComponent;
+    use littlefinger::components::voting::VotingComponent;
+    use littlefinger::interfaces::icore::ICore;
+    use littlefinger::interfaces::ivault::{IVaultDispatcher, IVaultDispatcherTrait};
+    use littlefinger::structs::disbursement_structs::{ScheduleStatus, UnitDisbursement};
+    // use littlefinger::structs::organization::{OrganizationConfig, OrganizationInfo, OwnerInit};
+    use littlefinger::structs::member_structs::{Member, MemberResponse, MemberRoleIntoU16};
     use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::upgrades::UpgradeableComponent;
     use openzeppelin::upgrades::interface::IUpgradeable;
-    use starknet::{ClassHash, ContractAddress, get_caller_address, get_block_timestamp, get_contract_address};
-    use littlefinger::components::member_manager::MemberManagerComponent;
-    use littlefinger::components::organization::OrganizationComponent;
-    // use littlefinger::structs::organization::{OrganizationConfig, OrganizationInfo, OwnerInit};
-    use littlefinger::structs::member_structs::{MemberResponse, MemberRoleIntoU16, Member};
-    use littlefinger::components::voting::VotingComponent;
-    use littlefinger::components::disbursement::DisbursementComponent;
-    use littlefinger::interfaces::icore::ICore;
-    use littlefinger::interfaces::ivault::{IVaultDispatcher, IVaultDispatcherTrait};
-    use littlefinger::structs::disbursement_structs::{UnitDisbursement, ScheduleStatus};
+    use starknet::storage::StoragePointerWriteAccess;
+    use starknet::{
+        ClassHash, ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
+    };
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
@@ -27,9 +29,11 @@ mod Core {
     #[abi(embed_v0)]
     impl MemberImpl = MemberManagerComponent::MemberManager<ContractState>;
     #[abi(embed_v0)]
-    impl DisbursementImpl = DisbursementComponent::DisbursementManager<ContractState>;
+    impl DisbursementImpl =
+        DisbursementComponent::DisbursementManager<ContractState>;
     #[abi(embed_v0)]
-    impl OrganizationImpl = OrganizationComponent::OrganizationManager<ContractState>;
+    impl OrganizationImpl =
+        OrganizationComponent::OrganizationManager<ContractState>;
     #[abi(embed_v0)]
     impl VotingImpl = VotingComponent::VotingImpl<ContractState>;
 
@@ -56,7 +60,7 @@ mod Core {
         #[substorage(v0)]
         voting: VotingComponent::Storage, //my component
         #[substorage(v0)]
-        disbursement: DisbursementComponent::Storage, //my component
+        disbursement: DisbursementComponent::Storage //my component
     }
 
     #[event]
@@ -85,7 +89,7 @@ mod Core {
 
     #[constructor]
     fn constructor(
-        ref self: ContractState, 
+        ref self: ContractState,
         // organization_info: OrganizationInfo,
         org_id: u256,
         org_name: ByteArray,
@@ -95,11 +99,11 @@ mod Core {
         first_admin_fname: felt252,
         first_admin_lname: felt252,
         first_admin_alias: felt252,
-        deployer: ContractAddress
+        deployer: ContractAddress,
     ) { // owner
-        self.organization._init(
-            Option::Some(owner), org_name, ipfs_url, vault_address, org_id, deployer
-        );
+        self
+            .organization
+            ._init(Option::Some(owner), org_name, ipfs_url, vault_address, org_id, deployer);
         // MemberManagerComponent::InternalImpl::_initialize(
         //     ref self.member, first_admin_fname, first_admin_lname, first_admin_alias
         // )
@@ -149,7 +153,7 @@ mod Core {
             let org_info = self.organization.get_organization_details();
             let vault_address = org_info.vault_address;
 
-            let vault_dispatcher = IVaultDispatcher { contract_address: vault_address};
+            let vault_dispatcher = IVaultDispatcher { contract_address: vault_address };
             let total_bonus = vault_dispatcher.get_bonus_allocation();
             let total_funds = vault_dispatcher.get_balance();
 
@@ -162,8 +166,7 @@ mod Core {
 
             if let Option::Some(last_execution) = current_schedule.last_execution {
                 assert(
-                    now >= last_execution + current_schedule.interval,
-                    'Too soon to execute payout'
+                    now >= last_execution + current_schedule.interval, 'Too soon to execute payout',
                 );
             }
 
@@ -175,8 +178,8 @@ mod Core {
                 let current_member = *members.at(i);
                 let current_member_role = MemberRoleIntoU16::into(current_member.role);
                 total_weight += current_member_role;
-            };
-            
+            }
+
             for i in 0..(no_of_members - 1) {
                 let current_member_response = *members.at(i);
                 let pseudo_current_member = Member {
@@ -184,21 +187,22 @@ mod Core {
                     address: current_member_response.address,
                     status: current_member_response.status,
                     role: current_member_response.role,
-                    base_pay: current_member_response.base_pay
+                    base_pay: current_member_response.base_pay,
                 };
-                let amount = self.disbursement.compute_renumeration(
-                    pseudo_current_member, total_bonus ,total_weight
-                );
+                let amount = self
+                    .disbursement
+                    .compute_renumeration(pseudo_current_member, total_bonus, total_weight);
                 let timestamp = get_block_timestamp();
                 let transfer = vault_dispatcher.pay_member(pseudo_current_member.address, amount);
                 let unit_disbursement = UnitDisbursement {
-                        caller, timestamp, member: pseudo_current_member
+                    caller, timestamp, member: pseudo_current_member,
                 };
-                if !transfer { failed_disbursements.append(unit_disbursement) }
+                if !transfer {
+                    failed_disbursements.append(unit_disbursement)
+                }
             }
 
             self.disbursement.update_current_schedule_last_execution(now);
         }
     }
-    
 }
