@@ -37,9 +37,9 @@ pub trait IFactory<T> {
         salt: felt252,
         // class_hash: felt252,
         // Needed to initialize the organization component
-        owner: Option<ContractAddress>,
-        name: ByteArray,
-        ipfs_url: ByteArray,
+        owner: ContractAddress, 
+        name: ByteArray, 
+        ipfs_url: ByteArray, 
         // vault_address: ContractAddress,
         // Needed to initialize the member component
         first_admin_fname: felt252,
@@ -49,6 +49,7 @@ pub trait IFactory<T> {
     ) -> (ContractAddress, ContractAddress);
     fn get_deployed_vaults(self: @T) -> Array<ContractAddress>;
     fn get_deployed_org_cores(self: @T) -> Array<ContractAddress>;
+    fn get_vault_org_pair(self: @T, caller: ContractAddress) -> (ContractAddress, ContractAddress);
     fn update_class_hash(ref self: T, vault_hash: Option<ClassHash>, core_hash: Option<ClassHash>);
     // fn get_vault_org_pairs(self: @T) -> Array<(ContractAddress, ContractAddress)>;
 

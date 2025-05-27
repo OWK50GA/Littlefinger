@@ -162,14 +162,14 @@ pub mod Vault {
         }
         // fn bulk_transfer(ref self: ContractState, recipients: Span<ContractAddress>) {}
         fn get_balance(self: @ContractState) -> u256 {
-            let caller = get_caller_address();
-            assert(self.permitted_addresses.entry(caller).read(), 'Caller Not Permitted');
+            // let caller = get_caller_address();
+            // assert(self.permitted_addresses.entry(caller).read(), 'Caller Not Permitted');
             self.available_funds.read()
         }
 
         fn get_bonus_allocation(self: @ContractState) -> u256 {
-            let caller = get_caller_address();
-            assert(self.permitted_addresses.entry(caller).read(), 'Caller Not Permitted');
+            // let caller = get_caller_address();
+            // assert(self.permitted_addresses.entry(caller).read(), 'Caller Not Permitted');
             self.total_bonus.read()
         }
 

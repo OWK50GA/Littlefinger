@@ -1,7 +1,7 @@
 use starknet::ContractAddress;
-use super::member_structs::MemberConfig;
-use super::organization::{OrganizationConfig, OwnerInit};
-use super::voting::PollConfigParams;
+// use super::member_structs::MemberConfig;
+// use super::organization::{OrganizationConfig, OwnerInit};
+// use super::voting::PollConfigParams;
 
 // do not use this..
 #[derive(Drop, Copy, PartialEq, Serde, Default)]
@@ -43,6 +43,6 @@ pub fn get_default_stream_details() -> StreamDetails {
 
 #[starknet::storage_node]
 pub struct CoreConfigNode {
-    params: CoreConfigParams,
+    // params: CoreConfigParams,
 }
 

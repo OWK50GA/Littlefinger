@@ -16,10 +16,11 @@ pub mod DisbursementComponent {
 
     #[storage]
     pub struct Storage {
-        authorized_callers: Map<ContractAddress, bool>,
-        disbursement_schedules: Map<felt252, Option<DisbursementSchedule>>,
+        authorized_callers: Map::<ContractAddress, bool>,
+        owner: ContractAddress,
+        disbursement_schedules: Map::<felt252, Option<DisbursementSchedule>>,
         current_schedule: DisbursementSchedule,
-        failed_disbursements: Map<
+        failed_disbursements: Map::<
             u256, UnitDisbursement,
         >, //map disbursement id to a failed disbursement
         schedules_count: u64,
@@ -320,6 +321,11 @@ pub mod DisbursementComponent {
                 .entry(schedule_id)
                 .write(Option::Some(disbursement_schedule));
             self.current_schedule.write(disbursement_schedule);
+        }
+
+        fn _init(ref self: ComponentState<TContractState>, owner: ContractAddress) {
+            self.owner.write(owner);
+            self.authorized_callers.entry(owner).write(true);
         }
     }
 }

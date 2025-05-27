@@ -6,10 +6,8 @@ pub mod OrganizationComponent {
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
     // use crate::interfaces::icore::IConfig;
     use crate::interfaces::iorganization::IOrganization;
-    use crate::structs::member_structs::MemberTrait;
-    use crate::structs::organization::{
-        OrganizationConfig, OrganizationConfigNode, OrganizationInfo,
-    };
+    // use crate::structs::member_structs::MemberTrait;
+    use crate::structs::organization::{OrganizationConfig, OrganizationConfigNode, OrganizationInfo};
     use super::super::member_manager::MemberManagerComponent;
 
 

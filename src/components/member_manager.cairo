@@ -160,7 +160,7 @@ pub mod MemberManagerComponent {
             // the member can accept
             // For this protocol, the member must accept before other admins verify the member...
             // this can only happen when the member config requires multisig.
-            let id: u256 = (self.member_count.read() + 1).into();
+            // let id: u256 = (self.member_count.read() + 1).into();
             let caller = get_caller_address();
             assert(self.admin_ca.entry(caller).read(), 'UNAUTHORIZED CALLER');
             assert(role <= 2 && role >= 0, 'Invalid Role');

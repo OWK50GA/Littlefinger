@@ -109,10 +109,10 @@ mod Core {
         // )
         self.member._initialize(first_admin_fname, first_admin_lname, first_admin_alias);
         self.vault_address.write(vault_address);
-        self.disbursement._add_authorized_caller(owner);
-        self.disbursement._add_authorized_caller(deployer);
-        let this_contract = get_contract_address();
-        self.disbursement._add_authorized_caller(this_contract);
+        self.disbursement._init(owner);
+        // self.disbursement._add_authorized_caller(deployer);
+        // let this_contract = get_contract_address();
+        // self.disbursement._add_authorized_caller(this_contract);
         self.ownable.initializer(owner);
     }
 
