@@ -152,10 +152,11 @@ pub mod Factory {
                 self.org_core_class_hash.write(hash)
             }
         }
-        // fn get_vault_org_pairs(self: @ContractState) -> Array<(ContractAddress, ContractAddress)>
-    // {
 
-        // }
+        fn get_vault_org_pair(self: @ContractState, caller: ContractAddress) -> (ContractAddress, ContractAddress) {
+            let vault_org_pair = self.vault_org_pairs.entry(caller).read();
+            vault_org_pair
+        }
     }
 
     #[generate_trait]
