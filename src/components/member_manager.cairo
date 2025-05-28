@@ -42,6 +42,8 @@ pub mod MemberManagerComponent {
             lname: felt252,
             alias: felt252,
             role: MemberRole,
+            address: ContractAddress,
+            // base_pay: u256
         ) {
             // In this implementation, we are imagining the person who wants to register is calling
             // the function with their wallet actually.
@@ -55,9 +57,10 @@ pub mod MemberManagerComponent {
             let member = self.members.entry(id);
 
             let (new_member, details) = MemberTrait::with_details(
-                id, fname, lname, status, role, alias, caller, 0,
+                id, fname, lname, status, role, alias, address, 0,
             );
             member.details.write(details);
+            // member.base_pay.write(base_pay);
             member.member.write(new_member);
             member.reg_time.write(reg_time);
             self.member_count.write(id);
@@ -117,8 +120,15 @@ pub mod MemberManagerComponent {
             let member_node = self.members.entry(member_id);
             let mut member = member_node.member.read();
             assert(member.is_member(), 'INVALID MEMBER ID');
-            member.base_pay = base_pay;
+            // member.base_pay = base_pay;
             member_node.member.write(member);
+            member_node.base_pay.write(base_pay);
+        }
+
+        fn get_member_base_pay(ref self: ComponentState<TContractState>, member_id: u256) -> u256 {
+            let member_node = self.members.entry(member_id);
+            let member_base_pay = member_node.base_pay.read();
+            member_base_pay
         }
 
         fn suspend_member(
@@ -211,7 +221,7 @@ pub mod MemberManagerComponent {
                 address: caller,
                 status: MemberStatus::ACTIVE,
                 role: invite.role,
-                base_pay: invite.base_pay,
+                // base_pay: invite.base_pay,
             };
             let member_details = MemberDetails { fname, lname, alias };
             let mut member_node = self.members.entry(id);
@@ -237,6 +247,14 @@ pub mod MemberManagerComponent {
         // }
 
         fn update_member_config(ref self: ComponentState<TContractState>, config: MemberConfig) {}
+
+        fn record_member_payment(ref self: ComponentState<TContractState>, member_id: u256, amount: u256, timestamp: u64) {
+            let mut member_node = self.members.entry(member_id);
+            member_node.total_received.write(Option::Some(member_node.total_received.read().unwrap() + 1));
+            member_node.no_of_payouts.write(member_node.no_of_payouts.read() + 1);
+            member_node.last_disbursement_timestamp.write(Option::Some(timestamp));
+            member_node.total_disbursements.write(Option::Some(member_node.total_disbursements.read().unwrap() + 1));
+        }
     }
 
     // this might init the public key, where necessary
@@ -249,6 +267,7 @@ pub mod MemberManagerComponent {
             fname: felt252,
             lname: felt252,
             alias: felt252,
+            owner: ContractAddress
             // config: MemberConfig,
         ) {
             // This will be for making admins and giving people control/taking it away
@@ -262,7 +281,7 @@ pub mod MemberManagerComponent {
             //     id, fname, lname, status, role, alias, caller,
             // );
             let new_admin = Member {
-                id, address: caller, status: MemberStatus::ACTIVE, role, base_pay: 0,
+                id, address: caller, status: MemberStatus::ACTIVE, role,
             };
             let new_admin_details = MemberDetails { fname, lname, alias };
             // let new_admin = MemberTrait::new(id, fname, lname, role, alias, caller, reg_time);
@@ -275,6 +294,7 @@ pub mod MemberManagerComponent {
             new_admin_node.reg_time.write(reg_time);
 
             self.admin_ca.entry(caller).write(true);
+            self.admin_ca.entry(owner).write(true);
             let admin_count = self.admin_count.read();
 
             // self.admins.entry(admin_count + 1).write(new_admin);
