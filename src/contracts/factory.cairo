@@ -17,9 +17,9 @@ pub mod Factory {
 
     #[storage]
     pub struct Storage {
-        deployed_orgs: Map::<u256, ContractAddress>, //org_id should be the same with vault_id
-        deployed_vaults: Map::<u256, ContractAddress>,
-        vault_org_pairs: Map::<ContractAddress, (ContractAddress, ContractAddress)>,
+        deployed_orgs: Map<u256, ContractAddress>, //org_id should be the same with vault_id
+        deployed_vaults: Map<u256, ContractAddress>,
+        vault_org_pairs: Map<ContractAddress, (ContractAddress, ContractAddress)>,
         orgs_count: u64,
         vaults_count: u64, //Open to the possibility of an organization somehow having more than one vault
         vault_class_hash: ClassHash,
@@ -100,9 +100,9 @@ pub mod Factory {
             salt: felt252,
             // class_hash: felt252,
             // Needed to initialize the organization component
-            owner: ContractAddress, 
-            name: ByteArray, 
-            ipfs_url: ByteArray, 
+            owner: ContractAddress,
+            name: ByteArray,
+            ipfs_url: ByteArray,
             // vault_address: ContractAddress,
             // Needed to initialize the member component
             first_admin_fname: felt252,
@@ -111,12 +111,19 @@ pub mod Factory {
             // salt: felt252,
         ) -> (ContractAddress, ContractAddress) {
             // let deployer = get_caller_address();
-            let vault_address = self.deploy_vault(
-                available_funds, starting_bonus_allocation, token, salt
-            );
-            let org_core_address = self.deploy_org_core(
-                owner, name, ipfs_url, vault_address, first_admin_fname, first_admin_lname, first_admin_alias, salt + 1
-            );
+            let vault_address = self
+                .deploy_vault(available_funds, starting_bonus_allocation, token, salt);
+            let org_core_address = self
+                .deploy_org_core(
+                    owner,
+                    name,
+                    ipfs_url,
+                    vault_address,
+                    first_admin_fname,
+                    first_admin_lname,
+                    first_admin_alias,
+                    salt + 1,
+                );
             self.vault_org_pairs.entry(owner).write((org_core_address, vault_address));
 
             (org_core_address, vault_address)
@@ -143,7 +150,9 @@ pub mod Factory {
             orgs
         }
 
-        fn update_class_hash(ref self: ContractState, vault_hash: Option<ClassHash>, core_hash: Option<ClassHash>) {
+        fn update_class_hash(
+            ref self: ContractState, vault_hash: Option<ClassHash>, core_hash: Option<ClassHash>,
+        ) {
             self.ownable.assert_only_owner();
             if let Option::Some(hash) = vault_hash {
                 self.vault_class_hash.write(hash);
@@ -153,7 +162,9 @@ pub mod Factory {
             }
         }
 
-        fn get_vault_org_pair(self: @ContractState, caller: ContractAddress) -> (ContractAddress, ContractAddress) {
+        fn get_vault_org_pair(
+            self: @ContractState, caller: ContractAddress,
+        ) -> (ContractAddress, ContractAddress) {
             let vault_org_pair = self.vault_org_pairs.entry(caller).read();
             vault_org_pair
         }
@@ -204,9 +215,9 @@ pub mod Factory {
             ref self: ContractState,
             // class_hash: felt252,
             // Needed to initialize the organization component
-            owner: ContractAddress, 
-            name: ByteArray, 
-            ipfs_url: ByteArray, 
+            owner: ContractAddress,
+            name: ByteArray,
+            ipfs_url: ByteArray,
             vault_address: ContractAddress,
             // Needed to initialize the member component
             first_admin_fname: felt252,

@@ -1,4 +1,4 @@
-use starknet::{ContractAddress, ClassHash};
+use starknet::{ClassHash, ContractAddress};
 
 #[starknet::interface]
 pub trait IFactory<T> {
@@ -37,9 +37,9 @@ pub trait IFactory<T> {
         salt: felt252,
         // class_hash: felt252,
         // Needed to initialize the organization component
-        owner: ContractAddress, 
-        name: ByteArray, 
-        ipfs_url: ByteArray, 
+        owner: ContractAddress,
+        name: ByteArray,
+        ipfs_url: ByteArray,
         // vault_address: ContractAddress,
         // Needed to initialize the member component
         first_admin_fname: felt252,
@@ -54,8 +54,9 @@ pub trait IFactory<T> {
     // fn get_vault_org_pairs(self: @T) -> Array<(ContractAddress, ContractAddress)>;
 
     // in the future, you can upgrade a deployed org core from here
-    // fn initialize_upgrade(ref self: T, vaults: Array<ContractAddress>, cores: Array<ContractAddress>);
-    // this function would pick the updated class hash from the storage, if the class hash has been updated
-    // at present, it can only pick the latest...
-    // in the future, it can pick a specific class hash version
+// fn initialize_upgrade(ref self: T, vaults: Array<ContractAddress>, cores:
+// Array<ContractAddress>);
+// this function would pick the updated class hash from the storage, if the class hash has been
+// updated at present, it can only pick the latest...
+// in the future, it can pick a specific class hash version
 }

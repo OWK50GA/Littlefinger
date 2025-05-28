@@ -42,7 +42,6 @@ pub fn get_default_stream_details() -> StreamDetails {
 }
 
 #[starknet::storage_node]
-pub struct CoreConfigNode {
-    // params: CoreConfigParams,
+pub struct CoreConfigNode { // params: CoreConfigParams,
 }
 
