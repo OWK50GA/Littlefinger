@@ -1,10 +1,15 @@
-use littlefinger::structs::member_structs::{MemberRole, MemberResponse};
+use littlefinger::structs::member_structs::{MemberResponse, MemberRole};
 use starknet::ContractAddress;
 
 #[starknet::interface]
 pub trait IMockAddMember<TContractState> {
     fn add_member_pub(
-        ref self: TContractState, fname: felt252, lname: felt252, alias: felt252, role: MemberRole,
+        ref self: TContractState,
+        fname: felt252,
+        lname: felt252,
+        alias: felt252,
+        role: MemberRole,
+        address: ContractAddress,
     );
     fn get_member_pub(self: @TContractState, member_id: u256) -> MemberResponse;
 }
@@ -12,7 +17,8 @@ pub trait IMockAddMember<TContractState> {
 #[starknet::contract]
 pub mod MockAddMember {
     use littlefinger::components::member_manager::MemberManagerComponent;
-    use littlefinger::structs::member_structs::{MemberRole, MemberResponse};
+    use littlefinger::structs::member_structs::{MemberResponse, MemberRole};
+    use starknet::ContractAddress;
 
     component!(path: MemberManagerComponent, storage: member_add, event: MemberAddEvent);
 
@@ -40,11 +46,12 @@ pub mod MockAddMember {
             lname: felt252,
             alias: felt252,
             role: MemberRole,
+            address: ContractAddress,
         ) {
-            self.member_add.add_member(fname, lname, alias, role);
+            self.member_add.add_member(fname, lname, alias, role, address);
         }
 
-        fn get_member_pub(self: @ContractState, member_id: u256) -> MemberResponse{
+        fn get_member_pub(self: @ContractState, member_id: u256) -> MemberResponse {
             self.member_add.get_member(member_id)
         }
     }
