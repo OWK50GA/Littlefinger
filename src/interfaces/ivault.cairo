@@ -1,5 +1,5 @@
+use littlefinger::structs::vault_structs::{Transaction, VaultStatus};
 use starknet::ContractAddress;
-use littlefinger::structs::vault_structs::{VaultStatus, Transaction};
 
 #[starknet::interface]
 pub trait IVault<TContractState> {

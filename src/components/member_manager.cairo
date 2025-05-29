@@ -217,10 +217,7 @@ pub mod MemberManagerComponent {
             //Signing this function means they accept the invite
             let id = self.member_count.read() + 1;
             let member = Member {
-                id,
-                address: caller,
-                status: MemberStatus::ACTIVE,
-                role: invite.role,
+                id, address: caller, status: MemberStatus::ACTIVE, role: invite.role,
                 // base_pay: invite.base_pay,
             };
             let member_details = MemberDetails { fname, lname, alias };
@@ -248,12 +245,18 @@ pub mod MemberManagerComponent {
 
         fn update_member_config(ref self: ComponentState<TContractState>, config: MemberConfig) {}
 
-        fn record_member_payment(ref self: ComponentState<TContractState>, member_id: u256, amount: u256, timestamp: u64) {
+        fn record_member_payment(
+            ref self: ComponentState<TContractState>, member_id: u256, amount: u256, timestamp: u64,
+        ) {
             let mut member_node = self.members.entry(member_id);
-            member_node.total_received.write(Option::Some(member_node.total_received.read().unwrap() + 1));
+            member_node
+                .total_received
+                .write(Option::Some(member_node.total_received.read().unwrap() + 1));
             member_node.no_of_payouts.write(member_node.no_of_payouts.read() + 1);
             member_node.last_disbursement_timestamp.write(Option::Some(timestamp));
-            member_node.total_disbursements.write(Option::Some(member_node.total_disbursements.read().unwrap() + 1));
+            member_node
+                .total_disbursements
+                .write(Option::Some(member_node.total_disbursements.read().unwrap() + 1));
         }
     }
 
@@ -267,7 +270,7 @@ pub mod MemberManagerComponent {
             fname: felt252,
             lname: felt252,
             alias: felt252,
-            owner: ContractAddress
+            owner: ContractAddress,
             // config: MemberConfig,
         ) {
             // This will be for making admins and giving people control/taking it away
@@ -280,9 +283,7 @@ pub mod MemberManagerComponent {
             // let (new_admin, details) = MemberTrait::with_details(
             //     id, fname, lname, status, role, alias, caller,
             // );
-            let new_admin = Member {
-                id, address: caller, status: MemberStatus::ACTIVE, role,
-            };
+            let new_admin = Member { id, address: caller, status: MemberStatus::ACTIVE, role };
             let new_admin_details = MemberDetails { fname, lname, alias };
             // let new_admin = MemberTrait::new(id, fname, lname, role, alias, caller, reg_time);
 
