@@ -30,8 +30,8 @@ jobs:
       - name: Install Starknet Foundry
         run: |
           asdf plugin add starknet-foundry || true
-          asdf install starknet-foundry latest
-          asdf global starknet-foundry latest
+          asdf install starknet-foundry 0.40.0
+          asdf global starknet-foundry 0.40.0
       - name: Build and Test Contracts
         run: |
           scarb build
