@@ -29,3 +29,11 @@ pub mod structs {
     pub mod vault_structs;
     pub mod voting;
 }
+
+#[cfg(test)]
+pub mod tests {
+    pub mod test_member_manager;
+    pub mod mocks {
+        pub mod mock_add_member;
+    }
+}
