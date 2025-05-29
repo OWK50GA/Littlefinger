@@ -39,7 +39,7 @@ pub struct Member {
     pub address: ContractAddress,
     pub status: MemberStatus,
     pub role: MemberRole,
-    pub base_pay: u256,
+    // pub base_pay: u256,
 }
 
 #[derive(Copy, Drop, Serde, PartialEq, starknet::Store)]
@@ -140,7 +140,7 @@ pub impl MemberImpl of MemberTrait {
         address: ContractAddress,
         base_pay: u256,
     ) -> (Member, MemberDetails) {
-        let member = Member { id, address, status, role, base_pay };
+        let member = Member { id, address, status, role };
         let details = MemberDetails { fname, lname, alias };
 
         (member, details)

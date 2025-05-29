@@ -1,5 +1,5 @@
 use littlefinger::structs::disbursement_structs::{DisbursementSchedule, ScheduleType};
-use littlefinger::structs::member_structs::Member;
+use littlefinger::structs::member_structs::{MemberResponse, Member};
 use starknet::ContractAddress;
 
 // TODO: The component should store failed disbursements, and everytime it disburses, after writing
@@ -33,7 +33,7 @@ pub trait IDisbursement<T> {
     // It can be a storage variable in the member module to make it easier to handle, concerning gas
     // for loop transactions
     fn compute_renumeration(
-        ref self: T, member: Member, total_bonus_available: u256, total_members_weight: u16,
+        ref self: T, member: MemberResponse, total_bonus_available: u256, total_members_weight: u16,
         // total_funds_available: u256,
     ) -> u256;
 

@@ -15,6 +15,8 @@ pub enum TransactionType {
     #[default]
     DEPOSIT,
     WITHDRAWAL,
+    PAYMENT,
+    BONUS_ALLOCATION
     // VAULTFREEZE,
 // VAULTRESUME
 // The intention is to put the Vault freeze and vault resume as transactions, but plan changed
