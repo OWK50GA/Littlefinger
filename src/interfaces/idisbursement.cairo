@@ -1,5 +1,5 @@
 use littlefinger::structs::disbursement_structs::{DisbursementSchedule, ScheduleType};
-use littlefinger::structs::member_structs::{MemberResponse, Member};
+use littlefinger::structs::member_structs::{Member, MemberResponse};
 use starknet::ContractAddress;
 
 // TODO: The component should store failed disbursements, and everytime it disburses, after writing

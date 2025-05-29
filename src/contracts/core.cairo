@@ -1,7 +1,6 @@
 #[starknet::contract]
 mod Core {
-    use crate::interfaces::imember_manager::IMemberManager;
-use MemberManagerComponent::MemberInternalTrait;
+    use MemberManagerComponent::MemberInternalTrait;
     use OrganizationComponent::OrganizationInternalTrait;
     use littlefinger::components::disbursement::DisbursementComponent;
     use littlefinger::components::member_manager::MemberManagerComponent;
@@ -19,6 +18,7 @@ use MemberManagerComponent::MemberInternalTrait;
     use starknet::{
         ClassHash, ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
     };
+    use crate::interfaces::imember_manager::IMemberManager;
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
@@ -167,12 +167,14 @@ use MemberManagerComponent::MemberInternalTrait;
 
             // if let Option::Some(last_execution) = current_schedule.last_execution {
             //     assert(
-            //         now >= last_execution + current_schedule.interval, 'Too soon to execute payout',
+            //         now >= last_execution + current_schedule.interval, 'Too soon to execute
+            //         payout',
             //     );
             // }
             // let last_execution_ref = current_schedule.last_execution;
             // if last_execution_ref.is_some() {
-            //     assert(now >= (last_execution_ref.unwrap() + current_schedule.interval), 'Too soon to payout');
+            //     assert(now >= (last_execution_ref.unwrap() + current_schedule.interval), 'Too
+            //     soon to payout');
             // }
 
             // let mut failed_disbursements = array![];
