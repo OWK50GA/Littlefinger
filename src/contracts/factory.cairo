@@ -18,9 +18,9 @@ pub mod Factory {
 
     #[storage]
     pub struct Storage {
-        deployed_orgs: Map::<u256, ContractAddress>, //org_id should be the same with vault_id
-        deployed_vaults: Map::<u256, ContractAddress>,
-        vault_org_pairs: Map::<ContractAddress, (ContractAddress, ContractAddress)>,
+        deployed_orgs: Map<u256, ContractAddress>, //org_id should be the same with vault_id
+        deployed_vaults: Map<u256, ContractAddress>,
+        vault_org_pairs: Map<ContractAddress, (ContractAddress, ContractAddress)>,
         orgs_count: u64,
         vaults_count: u64, //Open to the possibility of an organization somehow having more than one vault
         vault_class_hash: ClassHash,
@@ -101,9 +101,9 @@ pub mod Factory {
             salt: felt252,
             // class_hash: felt252,
             // Needed to initialize the organization component
-            owner: ContractAddress, 
-            name: ByteArray, 
-            ipfs_url: ByteArray, 
+            owner: ContractAddress,
+            name: ByteArray,
+            ipfs_url: ByteArray,
             // vault_address: ContractAddress,
             // Needed to initialize the member component
             first_admin_fname: felt252,
@@ -156,7 +156,9 @@ pub mod Factory {
             self.org_core_class_hash.write(core_hash);
         }
 
-        fn get_vault_org_pair(self: @ContractState, caller: ContractAddress) -> (ContractAddress, ContractAddress) {
+        fn get_vault_org_pair(
+            self: @ContractState, caller: ContractAddress,
+        ) -> (ContractAddress, ContractAddress) {
             let vault_org_pair = self.vault_org_pairs.entry(caller).read();
             vault_org_pair
         }
@@ -209,9 +211,9 @@ pub mod Factory {
             ref self: ContractState,
             // class_hash: felt252,
             // Needed to initialize the organization component
-            owner: ContractAddress, 
-            name: ByteArray, 
-            ipfs_url: ByteArray, 
+            owner: ContractAddress,
+            name: ByteArray,
+            ipfs_url: ByteArray,
             vault_address: ContractAddress,
             // Needed to initialize the member component
             first_admin_fname: felt252,

@@ -16,11 +16,11 @@ pub mod DisbursementComponent {
 
     #[storage]
     pub struct Storage {
-        authorized_callers: Map::<ContractAddress, bool>,
+        authorized_callers: Map<ContractAddress, bool>,
         owner: ContractAddress,
         disbursement_schedules: Map::<u64, DisbursementSchedule>,
         current_schedule: DisbursementSchedule,
-        failed_disbursements: Map::<
+        failed_disbursements: Map<
             u256, UnitDisbursement,
         >, //map disbursement id to a failed disbursement
         schedules_count: u64,
@@ -68,9 +68,7 @@ pub mod DisbursementComponent {
                 .write(disbursement_schedule);
         }
 
-        fn pause_disbursement_schedule(
-            ref self: ComponentState<TContractState>, schedule_id: u64,
-        ) {
+        fn pause_disbursement_schedule(ref self: ComponentState<TContractState>, schedule_id: u64) {
             // let caller = get_caller_address();
             // assert(self.authorized_callers.entry(caller).read(), 'Caller Not Permitted');
             self._assert_caller();
@@ -159,7 +157,9 @@ pub mod DisbursementComponent {
             disbursement_schedule
         }
 
-        fn get_disbursement_schedules(self: @ComponentState<TContractState>) -> Array<DisbursementSchedule> {
+        fn get_disbursement_schedules(
+            self: @ComponentState<TContractState>,
+        ) -> Array<DisbursementSchedule> {
             let mut disbursement_schedules_array: Array<DisbursementSchedule> = array![];
 
             for i in 1..(self.schedules_count.read() + 1) {
@@ -170,7 +170,6 @@ pub mod DisbursementComponent {
             }
 
             disbursement_schedules_array
-
         }
 
         fn compute_renumeration(
@@ -233,9 +232,7 @@ pub mod DisbursementComponent {
         }
 
         fn update_schedule_type(
-            ref self: ComponentState<TContractState>,
-            schedule_id: u64,
-            schedule_type: ScheduleType,
+            ref self: ComponentState<TContractState>, schedule_id: u64, schedule_type: ScheduleType,
         ) {
             self._assert_caller();
             let mut disbursement_schedule = self.disbursement_schedules.entry(schedule_id).read();
@@ -253,9 +250,7 @@ pub mod DisbursementComponent {
         }
 
 
-        fn retry_failed_disbursement(
-            ref self: ComponentState<TContractState>, schedule_id: u64,
-        ) {
+        fn retry_failed_disbursement(ref self: ComponentState<TContractState>, schedule_id: u64) {
             self._assert_caller();
         }
 

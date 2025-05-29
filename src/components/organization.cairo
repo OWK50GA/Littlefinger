@@ -7,7 +7,9 @@ pub mod OrganizationComponent {
     // use crate::interfaces::icore::IConfig;
     use crate::interfaces::iorganization::IOrganization;
     // use crate::structs::member_structs::MemberTrait;
-    use crate::structs::organization::{OrganizationConfig, OrganizationConfigNode, OrganizationInfo};
+    use crate::structs::organization::{
+        OrganizationConfig, OrganizationConfigNode, OrganizationInfo,
+    };
     use super::super::member_manager::MemberManagerComponent;
 
 
