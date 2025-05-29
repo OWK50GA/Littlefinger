@@ -9,18 +9,28 @@ pub mod Vault {
     use starknet::{
         ContractAddress, get_block_timestamp, get_caller_address, get_contract_address, get_tx_info,
     };
+    use openzeppelin::access::ownable::OwnableComponent;
+    use openzeppelin::upgrades::UpgradeableComponent;
+    // use openzeppelin::upgrades::interface::IUpgradeable;
+
+    component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
+    component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
 
     #[storage]
     struct Storage {
-        permitted_addresses: Map<ContractAddress, bool>,
+        permitted_addresses: Map::<ContractAddress, bool>,
         available_funds: u256,
         total_bonus: u256,
-        transaction_history: Map<
+        transaction_history: Map::<
             u64, Transaction,
         >, // No 1. Transaction x, no 2, transaction y etc for history, and it begins with 1
         transactions_count: u64,
         vault_status: VaultStatus,
         token: ContractAddress,
+        #[substorage(v0)]
+        ownable: OwnableComponent::Storage,
+        #[substorage(v0)]
+        upgradeable: UpgradeableComponent::Storage,
     }
 
     #[event]
@@ -31,6 +41,11 @@ pub mod Vault {
         VaultFrozen: VaultFrozen,
         VaultResumed: VaultResumed,
         TransactionRecorded: TransactionRecorded,
+        BonusAllocation: BonusAllocation,
+        #[flat]
+        OwnableEvent: OwnableComponent::Event,
+        #[flat]
+        UpgradeableEvent: UpgradeableComponent::Event,
         // TODO:
     // Add an event here that gets emitted if the money goes below a certain threshold
     // Threshold Will be decided.
@@ -72,6 +87,18 @@ pub mod Vault {
         token: ContractAddress,
     }
 
+    #[derive(Drop, starknet::Event)]
+    pub struct BonusAllocation {
+        amount: u256,
+        timestamp: u64,
+    }
+
+    #[abi(embed_v0)]
+    impl OwnableMixinImpl = OwnableComponent::OwnableMixinImpl<ContractState>;
+    impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
+
+    impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
+
     // TODO:
     // Add to this constructor, a way to add addresses and store them as permitted addresses here
     #[constructor]
@@ -80,12 +107,13 @@ pub mod Vault {
         token: ContractAddress,
         available_funds: u256,
         bonus_allocation: u256,
+        owner: ContractAddress,
     ) {
         self.available_funds.write(available_funds);
         self.total_bonus.write(bonus_allocation);
         self.token.write(token);
-        let caller = get_caller_address();
-        self.permitted_addresses.entry(caller).write(true);
+        // let caller = get_caller_address();
+        self.permitted_addresses.entry(owner).write(true);
     }
 
     // TODO:
@@ -98,9 +126,11 @@ pub mod Vault {
 
     #[abi(embed_v0)]
     pub impl VaultImpl of IVault<ContractState> {
-        fn deposit_funds(ref self: ContractState, amount: u256) {
+        fn deposit_funds(ref self: ContractState, amount: u256, address: ContractAddress) {
             let caller = get_caller_address();
-            assert(self.permitted_addresses.entry(caller).read(), 'Caller not permitted');
+            let permitted = self.permitted_addresses.entry(caller).read();
+            assert(permitted, 'Direct Caller not permitted');
+            assert(self.permitted_addresses.entry(address).read(), 'Deep Caller Not Permitted');
             let current_vault_status = self.vault_status.read();
             assert(
                 current_vault_status != VaultStatus::VAULTFROZEN, 'Vault Frozen for Transactions',
@@ -110,22 +140,24 @@ pub mod Vault {
             let token = self.token.read();
             let token_dispatcher = IERC20Dispatcher { contract_address: token };
 
-            let transfer = token_dispatcher.transfer_from(caller, this_contract, amount);
+            token_dispatcher.transfer_from(address, this_contract, amount);
 
-            self._record_transaction(token, amount, TransactionType::DEPOSIT, caller);
+            self._record_transaction(token, amount, TransactionType::DEPOSIT, address);
             // Correct me if I'm wrong, but I think recording both failed and unfailed.
 
-            assert(transfer, 'Transfer unsuccessful');
+            // assert(transfer, 'Transfer unsuccessful');
 
             let prev_available_funds = self.available_funds.read();
             self.available_funds.write(prev_available_funds + amount);
-            self.available_funds.write(prev_available_funds + amount);
-            self.emit(DepositSuccessful { caller, token, timestamp, amount })
+            // self.available_funds.write(prev_available_funds + amount);
+            self.emit(DepositSuccessful { caller: address, token, timestamp, amount })
         }
 
-        fn withdraw_funds(ref self: ContractState, amount: u256) {
+        fn withdraw_funds(ref self: ContractState, amount: u256, address: ContractAddress) {
             let caller = get_caller_address();
-            assert(self.permitted_addresses.entry(caller).read(), 'Caller Not Permitted');
+            let permitted = self.permitted_addresses.entry(caller).read();
+            assert(permitted, 'Direct Caller not permitted');
+            assert(self.permitted_addresses.entry(address).read(), 'Deep Caller Not Permitted');
 
             let current_vault_status = self.vault_status.read();
             assert(
@@ -137,28 +169,41 @@ pub mod Vault {
             let token = self.token.read();
             let token_dispatcher = IERC20Dispatcher { contract_address: token };
 
-            let transfer = token_dispatcher.transfer(caller, amount);
-            self._record_transaction(token, amount, TransactionType::WITHDRAWAL, caller);
-            assert(transfer, 'Withdrawal unsuccessful');
+            token_dispatcher.transfer(address, amount);
+            self._record_transaction(token, amount, TransactionType::WITHDRAWAL, address);
+            // assert(transfer, 'Withdrawal unsuccessful');
 
             let prev_available_funds = self.available_funds.read();
             self.available_funds.write(prev_available_funds - amount);
 
-            self.emit(WithdrawalSuccessful { caller, token, amount, timestamp })
+            self.emit(WithdrawalSuccessful { caller: address, token, amount, timestamp })
+        }
+
+        fn add_to_bonus_allocation(ref self: ContractState, amount: u256, address: ContractAddress) {
+            let caller = get_caller_address();
+            let permitted = self.permitted_addresses.entry(caller).read();
+            assert(permitted, 'Direct Caller not permitted');
+            assert(self.permitted_addresses.entry(address).read(), 'Deep Caller Not Permitted');
+            self.total_bonus.write(self.total_bonus.read() + amount);
+            self._record_transaction(self.token.read(), amount, TransactionType::BONUS_ALLOCATION, address);
         }
 
         fn emergency_freeze(ref self: ContractState) {
             let caller = get_caller_address();
-            assert(self.permitted_addresses.entry(caller).read(), 'Caller Not Permitted');
+            let permitted = self.permitted_addresses.entry(caller).read();
+            assert(permitted, 'Caller not permitted');
             assert(self.vault_status.read() != VaultStatus::VAULTFROZEN, 'Vault Already Frozen');
 
-            self.vault_status.write(VaultStatus::VAULTRESUMED);
+            self.vault_status.write(VaultStatus::VAULTFROZEN);
         }
 
         fn unfreeze_vault(ref self: ContractState) {
             let caller = get_caller_address();
-            assert(self.permitted_addresses.entry(caller).read(), 'Caller Not Permitted');
+            let permitted = self.permitted_addresses.entry(caller).read();
+            assert(permitted, 'Caller not permitted');
             assert(self.vault_status.read() != VaultStatus::VAULTRESUMED, 'Vault Not Frozen');
+
+            self.vault_status.write(VaultStatus::VAULTRESUMED);
         }
         // fn bulk_transfer(ref self: ContractState, recipients: Span<ContractAddress>) {}
         fn get_balance(self: @ContractState) -> u256 {
@@ -173,13 +218,35 @@ pub mod Vault {
             self.total_bonus.read()
         }
 
-        fn pay_member(ref self: ContractState, recipient: ContractAddress, amount: u256) -> bool {
+        fn pay_member(ref self: ContractState, recipient: ContractAddress, amount: u256) {
             let caller = get_caller_address();
             assert(self.permitted_addresses.entry(caller).read(), 'Caller Not Permitted');
             let token_address = self.token.read();
             let token = IERC20Dispatcher { contract_address: token_address };
             let transfer = token.transfer(recipient, amount);
-            transfer
+            assert(transfer, 'Transfer failed');
+            self._record_transaction(token_address, amount, TransactionType::PAYMENT, caller);
+            self.available_funds.write(self.available_funds.read() - amount);
+            // transfer
+        }
+
+        fn get_vault_status(self: @ContractState) -> VaultStatus {
+            self.vault_status.read()
+        }
+
+        fn get_transaction_history(self: @ContractState) -> Array<Transaction> {
+            let mut transaction_history = array![];
+
+            for i in 1..self.transactions_count.read() + 1 {
+                let current_transaction = self.transaction_history.entry(i).read();
+                transaction_history.append(current_transaction);
+            }
+
+            transaction_history
+        }
+
+        fn allow_org_core_address(ref self: ContractState, org_address: ContractAddress) {
+            self.permitted_addresses.entry(org_address).write(true);
         }
     }
 
