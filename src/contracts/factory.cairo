@@ -11,6 +11,7 @@ pub mod Factory {
     use starknet::syscalls::deploy_syscall;
     use starknet::{ContractAddress, SyscallResultTrait, get_block_timestamp, get_caller_address};
     // use littlefinger::structs::organization::{OrganizationInfo};
+    use littlefinger::interfaces::ivault::{IVaultDispatcher, IVaultDispatcherTrait};
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
@@ -112,12 +113,14 @@ pub mod Factory {
         ) -> (ContractAddress, ContractAddress) {
             // let deployer = get_caller_address();
             let vault_address = self.deploy_vault(
-                available_funds, starting_bonus_allocation, token, salt
+                available_funds, starting_bonus_allocation, token, salt, owner
             );
             let org_core_address = self.deploy_org_core(
                 owner, name, ipfs_url, vault_address, first_admin_fname, first_admin_lname, first_admin_alias, salt + 1
             );
             self.vault_org_pairs.entry(owner).write((org_core_address, vault_address));
+            let vault_dispatcher = IVaultDispatcher { contract_address: vault_address };
+            vault_dispatcher.allow_org_core_address(org_core_address);
 
             (org_core_address, vault_address)
         }
@@ -143,14 +146,14 @@ pub mod Factory {
             orgs
         }
 
-        fn update_class_hash(ref self: ContractState, vault_hash: Option<ClassHash>, core_hash: Option<ClassHash>) {
+        fn update_vault_hash(ref self: ContractState, vault_hash: ClassHash ) {
             self.ownable.assert_only_owner();
-            if let Option::Some(hash) = vault_hash {
-                self.vault_class_hash.write(hash);
-            }
-            if let Option::Some(hash) = core_hash {
-                self.org_core_class_hash.write(hash)
-            }
+            self.vault_class_hash.write(vault_hash);
+        }
+
+        fn update_core_hash(ref self: ContractState, core_hash: ClassHash ) {
+            self.ownable.assert_only_owner();
+            self.org_core_class_hash.write(core_hash);
         }
 
         fn get_vault_org_pair(self: @ContractState, caller: ContractAddress) -> (ContractAddress, ContractAddress) {
@@ -169,6 +172,7 @@ pub mod Factory {
             starting_bonus_allocation: u256,
             token: ContractAddress,
             salt: felt252,
+            owner: ContractAddress
         ) -> ContractAddress {
             let vault_count = self.vaults_count.read();
             let vault_id: u256 = vault_count.try_into().unwrap();
@@ -176,6 +180,7 @@ pub mod Factory {
             token.serialize(ref constructor_calldata);
             available_funds.serialize(ref constructor_calldata);
             starting_bonus_allocation.serialize(ref constructor_calldata);
+            owner.serialize(ref constructor_calldata);
 
             // Deploy the Vault
             let processed_class_hash: ClassHash = self.vault_class_hash.read();

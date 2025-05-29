@@ -1,6 +1,7 @@
 #[starknet::contract]
 mod Core {
-    use MemberManagerComponent::MemberInternalTrait;
+    use crate::interfaces::imember_manager::IMemberManager;
+use MemberManagerComponent::MemberInternalTrait;
     use OrganizationComponent::OrganizationInternalTrait;
     use littlefinger::components::disbursement::DisbursementComponent;
     use littlefinger::components::member_manager::MemberManagerComponent;
@@ -107,7 +108,7 @@ mod Core {
         // MemberManagerComponent::InternalImpl::_initialize(
         //     ref self.member, first_admin_fname, first_admin_lname, first_admin_alias
         // )
-        self.member._initialize(first_admin_fname, first_admin_lname, first_admin_alias);
+        self.member._initialize(first_admin_fname, first_admin_lname, first_admin_alias, owner);
         self.vault_address.write(vault_address);
         self.disbursement._init(owner);
         // self.disbursement._add_authorized_caller(deployer);
@@ -164,42 +165,46 @@ mod Core {
             assert(now >= current_schedule.start_timestamp, 'Payout has not started');
             assert(now < current_schedule.end_timestamp, 'Payout period ended');
 
-            if let Option::Some(last_execution) = current_schedule.last_execution {
-                assert(
-                    now >= last_execution + current_schedule.interval, 'Too soon to execute payout',
-                );
-            }
+            // if let Option::Some(last_execution) = current_schedule.last_execution {
+            //     assert(
+            //         now >= last_execution + current_schedule.interval, 'Too soon to execute payout',
+            //     );
+            // }
+            // let last_execution_ref = current_schedule.last_execution;
+            // if last_execution_ref.is_some() {
+            //     assert(now >= (last_execution_ref.unwrap() + current_schedule.interval), 'Too soon to payout');
+            // }
 
-            let mut failed_disbursements = array![];
+            // let mut failed_disbursements = array![];
 
             // Everyone uses a base weight multiplier at the start, of 1
             let mut total_weight: u16 = 0;
-            for i in 0..(no_of_members - 1) {
+            for i in 0..no_of_members {
                 let current_member = *members.at(i);
                 let current_member_role = MemberRoleIntoU16::into(current_member.role);
                 total_weight += current_member_role;
             }
-
-            for i in 0..(no_of_members - 1) {
+            let mut i = 0;
+            while i < no_of_members {
                 let current_member_response = *members.at(i);
-                let pseudo_current_member = Member {
-                    id: current_member_response.id,
-                    address: current_member_response.address,
-                    status: current_member_response.status,
-                    role: current_member_response.role,
-                    base_pay: current_member_response.base_pay,
-                };
+                // let pseudo_current_member = Member {
+                //     id: current_member_response.id,
+                //     address: current_member_response.address,
+                //     status: current_member_response.status,
+                //     role: current_member_response.role,
+                //     // base_pay: current_member_response.base_pay,
+                // };
                 let amount = self
                     .disbursement
-                    .compute_renumeration(pseudo_current_member, total_bonus, total_weight);
+                    .compute_renumeration(current_member_response, total_bonus, total_weight);
                 let timestamp = get_block_timestamp();
-                let transfer = vault_dispatcher.pay_member(pseudo_current_member.address, amount);
-                let unit_disbursement = UnitDisbursement {
-                    caller, timestamp, member: pseudo_current_member,
-                };
-                if !transfer {
-                    failed_disbursements.append(unit_disbursement)
-                }
+                vault_dispatcher.pay_member(current_member_response.address, amount);
+
+                // let unit_disbursement = UnitDisbursement {
+                //     caller, timestamp, member: pseudo_current_member,
+                // };
+                // self.member.record_member_payment(current_member_response.id, amount, timestamp)
+                i += 1;
             }
 
             self.disbursement.update_current_schedule_last_execution(now);
