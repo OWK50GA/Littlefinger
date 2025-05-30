@@ -100,9 +100,9 @@ pub mod MockMemberManager {
         self.member_manager.admin_count.write(1);
         
         // Initialize role values if needed
-        self.member_manager.role_value.append().write(1); // contractor multiplier
-        self.member_manager.role_value.append().write(2); // employee multiplier  
-        self.member_manager.role_value.append().write(3); // admin multiplier
+        self.member_manager.role_value.append().write(1);
+        self.member_manager.role_value.append().write(2);
+        self.member_manager.role_value.append().write(3);
     }
 
     #[abi(embed_v0)]
