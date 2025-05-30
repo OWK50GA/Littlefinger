@@ -63,6 +63,8 @@ pub mod MemberManagerComponent {
             // member.base_pay.write(base_pay);
             member.member.write(new_member);
             member.reg_time.write(reg_time);
+            member.total_received.write(Option::Some(0));
+            member.total_disbursements.write(Option::Some(0));
             self.member_count.write(id);
         }
 
@@ -193,7 +195,7 @@ pub mod MemberManagerComponent {
                 expiry: get_block_timestamp() + 604800 // a week for invite to expire
             };
             // let status: MemberStatus = Default::default();
-            self.member_invites.entry(caller).write(new_member_invite);
+            self.member_invites.entry(address).write(new_member_invite);
             let timestamp = get_block_timestamp();
             let event = MemberInvited { address, role: actual_role, timestamp };
             self.emit(MemberEnum::Invited(event));

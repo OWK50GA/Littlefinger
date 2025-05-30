@@ -34,6 +34,6 @@ pub mod structs {
 pub mod tests {
     pub mod test_member_manager;
     pub mod mocks {
-        pub mod mock_add_member;
+        pub mod mock_member_manager;
     }
 }
