@@ -4,9 +4,14 @@ use starknet::ContractAddress;
 #[starknet::interface]
 pub trait IMemberManager<TContractState> {
     fn add_member(
-        ref self: TContractState, fname: felt252, lname: felt252, alias: felt252, role: MemberRole, address: ContractAddress,
+        ref self: TContractState,
+        fname: felt252,
+        lname: felt252,
+        alias: felt252,
+        role: MemberRole,
+        address: ContractAddress,
         // base_pay: u256
-        // weight: u256
+    // weight: u256
     ); //-> u256;
     fn add_admin(ref self: TContractState, member_id: u256);
     fn invite_member(
@@ -37,7 +42,9 @@ pub trait IMemberManager<TContractState> {
     fn get_members(self: @TContractState) -> Span<MemberResponse>;
     fn get_member(self: @TContractState, member_id: u256) -> MemberResponse;
     fn update_member_config(ref self: TContractState, config: MemberConfig);
-    fn record_member_payment(ref self: TContractState, member_id: u256, amount: u256, timestamp: u64);
+    fn record_member_payment(
+        ref self: TContractState, member_id: u256, amount: u256, timestamp: u64,
+    );
     // ROLE MANAGEMENT
 
     // ALLOCATION WEIGHT MANAGEMENT (PROMOTION & DELETION)

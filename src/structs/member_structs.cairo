@@ -149,7 +149,7 @@ pub impl MemberImpl of MemberTrait {
     fn suspend(ref self: Member) {
         assert(
             self.status != MemberStatus::SUSPENDED // && self.status != MemberStatus::UNVERIFIED
-            && self.status != MemberStatus::REMOVED,
+                && self.status != MemberStatus::REMOVED,
             'Invalid member selection',
         );
         self.status = MemberStatus::SUSPENDED;

@@ -16,11 +16,11 @@ pub mod DisbursementComponent {
 
     #[storage]
     pub struct Storage {
-        authorized_callers: Map::<ContractAddress, bool>,
+        authorized_callers: Map<ContractAddress, bool>,
         owner: ContractAddress,
-        disbursement_schedules: Map::<u64, DisbursementSchedule>,
+        disbursement_schedules: Map<u64, DisbursementSchedule>,
         current_schedule: DisbursementSchedule,
-        failed_disbursements: Map::<
+        failed_disbursements: Map<
             u256, UnitDisbursement,
         >, //map disbursement id to a failed disbursement
         schedules_count: u64,
@@ -62,15 +62,10 @@ pub mod DisbursementComponent {
                 last_execution: Option::None,
             };
             self.schedules_count.write(schedule_count + 1);
-            self
-                .disbursement_schedules
-                .entry(schedule_count + 1)
-                .write(disbursement_schedule);
+            self.disbursement_schedules.entry(schedule_count + 1).write(disbursement_schedule);
         }
 
-        fn pause_disbursement_schedule(
-            ref self: ComponentState<TContractState>, schedule_id: u64,
-        ) {
+        fn pause_disbursement_schedule(ref self: ComponentState<TContractState>, schedule_id: u64) {
             // let caller = get_caller_address();
             // assert(self.authorized_callers.entry(caller).read(), 'Caller Not Permitted');
             self._assert_caller();
@@ -82,10 +77,7 @@ pub mod DisbursementComponent {
                 'Schedule Paused or Deleted',
             );
             disbursement_schedule.status = ScheduleStatus::PAUSED;
-            self
-                .disbursement_schedules
-                .entry(schedule_id)
-                .write(disbursement_schedule);
+            self.disbursement_schedules.entry(schedule_id).write(disbursement_schedule);
         }
 
         fn resume_schedule(ref self: ComponentState<TContractState>, schedule_id: u64) {
@@ -100,10 +92,7 @@ pub mod DisbursementComponent {
                 'Schedule Active or Deleted',
             );
             disbursement_schedule.status = ScheduleStatus::ACTIVE;
-            self
-                .disbursement_schedules
-                .entry(schedule_id)
-                .write(disbursement_schedule);
+            self.disbursement_schedules.entry(schedule_id).write(disbursement_schedule);
         }
 
         fn delete_schedule(ref self: ComponentState<TContractState>, schedule_id: u64) {
@@ -117,10 +106,7 @@ pub mod DisbursementComponent {
                 disbursement_schedule.status != ScheduleStatus::DELETED, 'Scedule Already Deleted',
             );
             disbursement_schedule.status = ScheduleStatus::DELETED;
-            self
-                .disbursement_schedules
-                .entry(schedule_id)
-                .write(disbursement_schedule);
+            self.disbursement_schedules.entry(schedule_id).write(disbursement_schedule);
         }
 
         fn add_failed_disbursement(
@@ -146,10 +132,7 @@ pub mod DisbursementComponent {
 
         fn set_current_schedule(ref self: ComponentState<TContractState>, schedule_id: u64) {
             self._assert_caller();
-            let schedule = self
-                .disbursement_schedules
-                .entry(schedule_id)
-                .read();
+            let schedule = self.disbursement_schedules.entry(schedule_id).read();
             assert(schedule.status == ScheduleStatus::ACTIVE, 'Schedule Not Active');
             self.current_schedule.write(schedule);
         }
@@ -159,18 +142,19 @@ pub mod DisbursementComponent {
             disbursement_schedule
         }
 
-        fn get_disbursement_schedules(self: @ComponentState<TContractState>) -> Array<DisbursementSchedule> {
+        fn get_disbursement_schedules(
+            self: @ComponentState<TContractState>,
+        ) -> Array<DisbursementSchedule> {
             let mut disbursement_schedules_array: Array<DisbursementSchedule> = array![];
 
             for i in 1..(self.schedules_count.read() + 1) {
                 let current_schedule = self.disbursement_schedules.entry(i).read();
-                if current_schedule.schedule_id != 0 {  // Add validation
+                if current_schedule.schedule_id != 0 { // Add validation
                     disbursement_schedules_array.append(current_schedule);
                 }
             }
 
             disbursement_schedules_array
-
         }
 
         fn compute_renumeration(
@@ -226,16 +210,11 @@ pub mod DisbursementComponent {
 
             disbursement_schedule.interval = new_interval;
 
-            self
-                .disbursement_schedules
-                .entry(schedule_id)
-                .write(disbursement_schedule);
+            self.disbursement_schedules.entry(schedule_id).write(disbursement_schedule);
         }
 
         fn update_schedule_type(
-            ref self: ComponentState<TContractState>,
-            schedule_id: u64,
-            schedule_type: ScheduleType,
+            ref self: ComponentState<TContractState>, schedule_id: u64, schedule_type: ScheduleType,
         ) {
             self._assert_caller();
             let mut disbursement_schedule = self.disbursement_schedules.entry(schedule_id).read();
@@ -246,16 +225,11 @@ pub mod DisbursementComponent {
 
             disbursement_schedule.schedule_type = schedule_type;
 
-            self
-                .disbursement_schedules
-                .entry(schedule_id)
-                .write(disbursement_schedule);
+            self.disbursement_schedules.entry(schedule_id).write(disbursement_schedule);
         }
 
 
-        fn retry_failed_disbursement(
-            ref self: ComponentState<TContractState>, schedule_id: u64,
-        ) {
+        fn retry_failed_disbursement(ref self: ComponentState<TContractState>, schedule_id: u64) {
             self._assert_caller();
         }
 
@@ -330,10 +304,7 @@ pub mod DisbursementComponent {
                 interval,
                 last_execution: Option::None,
             };
-            self
-                .disbursement_schedules
-                .entry(schedule_count + 1)
-                .write(disbursement_schedule);
+            self.disbursement_schedules.entry(schedule_count + 1).write(disbursement_schedule);
             self.schedules_count.write(schedule_count + 1);
             self.current_schedule.write(disbursement_schedule);
         }

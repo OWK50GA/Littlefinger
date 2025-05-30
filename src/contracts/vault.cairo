@@ -2,15 +2,15 @@
 pub mod Vault {
     use littlefinger::interfaces::ivault::IVault;
     use littlefinger::structs::vault_structs::{Transaction, TransactionType, VaultStatus};
+    use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use openzeppelin::upgrades::UpgradeableComponent;
     use starknet::storage::{
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use starknet::{
         ContractAddress, get_block_timestamp, get_caller_address, get_contract_address, get_tx_info,
     };
-    use openzeppelin::access::ownable::OwnableComponent;
-    use openzeppelin::upgrades::UpgradeableComponent;
     // use openzeppelin::upgrades::interface::IUpgradeable;
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
@@ -18,10 +18,10 @@ pub mod Vault {
 
     #[storage]
     struct Storage {
-        permitted_addresses: Map::<ContractAddress, bool>,
+        permitted_addresses: Map<ContractAddress, bool>,
         available_funds: u256,
         total_bonus: u256,
-        transaction_history: Map::<
+        transaction_history: Map<
             u64, Transaction,
         >, // No 1. Transaction x, no 2, transaction y etc for history, and it begins with 1
         transactions_count: u64,
@@ -179,13 +179,18 @@ pub mod Vault {
             self.emit(WithdrawalSuccessful { caller: address, token, amount, timestamp })
         }
 
-        fn add_to_bonus_allocation(ref self: ContractState, amount: u256, address: ContractAddress) {
+        fn add_to_bonus_allocation(
+            ref self: ContractState, amount: u256, address: ContractAddress,
+        ) {
             let caller = get_caller_address();
             let permitted = self.permitted_addresses.entry(caller).read();
             assert(permitted, 'Direct Caller not permitted');
             assert(self.permitted_addresses.entry(address).read(), 'Deep Caller Not Permitted');
             self.total_bonus.write(self.total_bonus.read() + amount);
-            self._record_transaction(self.token.read(), amount, TransactionType::BONUS_ALLOCATION, address);
+            self
+                ._record_transaction(
+                    self.token.read(), amount, TransactionType::BONUS_ALLOCATION, address,
+                );
         }
 
         fn emergency_freeze(ref self: ContractState) {

@@ -1,5 +1,5 @@
 use littlefinger::structs::disbursement_structs::{DisbursementSchedule, ScheduleType};
-use littlefinger::structs::member_structs::{MemberResponse, Member};
+use littlefinger::structs::member_structs::{Member, MemberResponse};
 use starknet::ContractAddress;
 
 // TODO: The component should store failed disbursements, and everytime it disburses, after writing
@@ -9,9 +9,11 @@ use starknet::ContractAddress;
 pub trait IDisbursement<T> {
     // disbursement schedule handling
     fn create_disbursement_schedule(
-        ref self: T, schedule_type: u8, //schedule_id: felt252,
+        ref self: T,
+        schedule_type: u8, //schedule_id: felt252,
         start: u64, //timestamp
-        end: u64, interval: u64,
+        end: u64,
+        interval: u64,
     );
     fn pause_disbursement_schedule(ref self: T, schedule_id: u64);
     fn resume_schedule(ref self: T, schedule_id: u64);
