@@ -24,31 +24,16 @@ pub trait IMockMemberManager<TContractState> {
     );
     fn get_member_pub(self: @TContractState, member_id: u256) -> MemberResponse;
     fn get_members_pub(self: @TContractState) -> Span<MemberResponse>;
-    fn update_member_base_pay_pub(
-        ref self: TContractState, 
-        member_id: u256, 
-        base_pay: u256
-    );
+    fn update_member_base_pay_pub(ref self: TContractState, member_id: u256, base_pay: u256);
     fn get_member_base_pay_pub(ref self: TContractState, member_id: u256) -> u256;
     fn suspend_member_pub(ref self: TContractState, member_id: u256);
     fn reinstate_member_pub(ref self: TContractState, member_id: u256);
     fn invite_member_pub(
-        ref self: TContractState,
-        role: u16,
-        address: ContractAddress,
-        renumeration: u256,
+        ref self: TContractState, role: u16, address: ContractAddress, renumeration: u256,
     ) -> felt252;
-    fn accept_invite_pub(
-        ref self: TContractState,
-        fname: felt252,
-        lname: felt252,
-        alias: felt252,
-    );
+    fn accept_invite_pub(ref self: TContractState, fname: felt252, lname: felt252, alias: felt252);
     fn record_member_payment_pub(
-        ref self: TContractState, 
-        member_id: u256, 
-        amount: u256, 
-        timestamp: u64
+        ref self: TContractState, member_id: u256, amount: u256, timestamp: u64,
     );
     fn update_member_config_pub(ref self: TContractState, config: MemberConfig);
     fn initialize_pub(
@@ -64,9 +49,7 @@ pub trait IMockMemberManager<TContractState> {
 #[starknet::contract]
 pub mod MockMemberManager {
     use littlefinger::components::member_manager::MemberManagerComponent;
-    use littlefinger::structs::member_structs::{
-        MemberConfig, MemberResponse, MemberRole
-    };
+    use littlefinger::structs::member_structs::{MemberConfig, MemberResponse, MemberRole};
     use starknet::ContractAddress;
     use starknet::storage::{
         Map, MutableVecTrait, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
@@ -98,7 +81,7 @@ pub mod MockMemberManager {
     fn constructor(ref self: ContractState, admin: ContractAddress) {
         self.member_manager.admin_ca.entry(admin).write(true);
         self.member_manager.admin_count.write(1);
-        
+
         // Initialize role values if needed
         self.member_manager.role_value.append().write(1);
         self.member_manager.role_value.append().write(2);
@@ -140,11 +123,7 @@ pub mod MockMemberManager {
             self.member_manager.get_members()
         }
 
-        fn update_member_base_pay_pub(
-            ref self: ContractState, 
-            member_id: u256, 
-            base_pay: u256
-        ) {
+        fn update_member_base_pay_pub(ref self: ContractState, member_id: u256, base_pay: u256) {
             self.member_manager.update_member_base_pay(member_id, base_pay);
         }
 
@@ -161,28 +140,19 @@ pub mod MockMemberManager {
         }
 
         fn invite_member_pub(
-            ref self: ContractState,
-            role: u16,
-            address: ContractAddress,
-            renumeration: u256,
+            ref self: ContractState, role: u16, address: ContractAddress, renumeration: u256,
         ) -> felt252 {
             self.member_manager.invite_member(role, address, renumeration)
         }
 
         fn accept_invite_pub(
-            ref self: ContractState,
-            fname: felt252,
-            lname: felt252,
-            alias: felt252,
+            ref self: ContractState, fname: felt252, lname: felt252, alias: felt252,
         ) {
             self.member_manager.accept_invite(fname, lname, alias);
         }
 
         fn record_member_payment_pub(
-            ref self: ContractState, 
-            member_id: u256, 
-            amount: u256, 
-            timestamp: u64
+            ref self: ContractState, member_id: u256, amount: u256, timestamp: u64,
         ) {
             self.member_manager.record_member_payment(member_id, amount, timestamp);
         }
