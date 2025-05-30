@@ -353,8 +353,6 @@ fn test_record_member_payment() {
     mock_contract.record_member_payment_pub(1, 5000, 3000);
     stop_cheat_caller_address(mock_contract.contract_address);
     
-    // This test verifies the function executes without error
-    // In a real scenario, you'd check the payment records via getter functions
 }
 
 #[test]
