@@ -1,4 +1,4 @@
-use interfaces::ifactory::IFactory::{IFactoryDispatcher, IFactoryDispatcherTrait};
+use littlefinger::interfaces::ifactory::{IFactoryDispatcher, IFactoryDispatcherTrait};
 use snforge_std::{ContractClassTrait, DeclareResultTrait, declare};
 use starknet::ContractAddress;
 
@@ -17,8 +17,10 @@ fn setup() -> ContractAddress {
 
 #[test]
 fn test_setup_org() {
-    let factory_address = setup();
-    let (org_address, vault_address) = factory_address.setup_org(
+    let contract_address = setup();
+    let dispatcher = IFactoryDispatcher { contract_address };
+
+    let (org_address, vault_address) = dispatcher.setup_org(
         available_funds: 1000000000000000000,
         starting_bonus_allocation: 1000000000000000000,
         token: 0.try_into().unwrap(),
