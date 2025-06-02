@@ -15,7 +15,12 @@ fn setup() -> ContractAddress {
 
     let contract_class = declare_result.unwrap().contract_class();
 
-    let deploy_result = contract_class.deploy(@array![owner().into(), 659728711719743422686207795783859628970777231746190932148921419640917221782.try_into().unwrap(), 3414973677566689729975614798541836063818025394568440647382351195764849955084.try_into().unwrap()]);
+    let mut calldata: Array<felt252> = array![owner().into()];
+
+    core_class_hash.serialize(ref calldata);
+    vault_class_hash.serialize(ref calldata);
+
+    let deploy_result = contract_class.deploy(@calldata);
 
     assert(deploy_result.is_ok(), 'contract deployment failed');
 
