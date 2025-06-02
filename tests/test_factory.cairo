@@ -8,16 +8,14 @@ fn owner() -> ContractAddress {
 
 fn setup() -> ContractAddress {
     let declare_result = declare("Factory");
-    let declare_org = declare("0x0");
-    let declare_vault = declare("0x1");
+    let core_class_hash = declare("Core").unwrap().contract_class().class_hash;
+    let vault_class_hash = declare("Vault").unwrap().contract_class().class_hash;
 
     assert(declare_result.is_ok(), 'factory declaration failed');
-    assert(declare_org.is_ok(), 'org declaration failed');
-    assert(declare_vault.is_ok(), 'vault declaration failed');
 
     let contract_class = declare_result.unwrap().contract_class();
 
-    let deploy_result = contract_class.deploy(@array![owner(), '0x0', '0x1']);
+    let deploy_result = contract_class.deploy(@array![owner().into(), 659728711719743422686207795783859628970777231746190932148921419640917221782.try_into().unwrap(), 3414973677566689729975614798541836063818025394568440647382351195764849955084.try_into().unwrap()]);
 
     assert(deploy_result.is_ok(), 'contract deployment failed');
 
