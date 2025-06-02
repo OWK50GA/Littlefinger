@@ -17,7 +17,7 @@ fn setup() -> ContractAddress {
 
     let contract_class = declare_result.unwrap().contract_class();
 
-    let deploy_result = contract_class.deploy(@array![1.try_into().unwrap(), '0x0', '0x1']);
+    let deploy_result = contract_class.deploy(@array![owner(), '0x0', '0x1']);
 
     assert(deploy_result.is_ok(), 'contract deployment failed');
 
