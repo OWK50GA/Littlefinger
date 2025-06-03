@@ -53,6 +53,4 @@ pub mod MockMemberManager {
         self.member_manager.role_value.append().write(2);
         self.member_manager.role_value.append().write(3);
     }
-
-    
 }
