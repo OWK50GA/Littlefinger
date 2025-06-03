@@ -169,6 +169,14 @@ pub mod Factory {
             let vault_org_pair = self.vault_org_pairs.entry(caller).read();
             vault_org_pair
         }
+
+        fn get_vault_class_hash(self: @ContractState) -> ClassHash {
+            self.vault_class_hash.read()
+        }
+
+        fn get_org_core_class_hash(self: @ContractState) -> ClassHash {
+            self.org_core_class_hash.read()
+        }
     }
 
     #[generate_trait]
