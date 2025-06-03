@@ -1,9 +1,9 @@
 use littlefinger::interfaces::ifactory::{IFactoryDispatcher, IFactoryDispatcherTrait};
+use openzeppelin::upgrades::interface::{IUpgradeableDispatcher, IUpgradeableDispatcherTrait};
 use snforge_std::{
     ContractClassTrait, DeclareResultTrait, declare, start_cheat_caller_address,
     stop_cheat_caller_address,
 };
-use openzeppelin::upgrades::interface::{IUpgradeableDispatcher, IUpgradeableDispatcherTrait};
 use starknet::ContractAddress;
 
 fn owner() -> ContractAddress {
@@ -154,7 +154,8 @@ fn test_get_deployed_orgs() {
 //     stop_cheat_caller_address(contract_address);
 
 //     assert(
-//         dispatcher.get_org_core_class_hash() == new_org_core_class_hash, 'class_hash is not equal',
+//         dispatcher.get_org_core_class_hash() == new_org_core_class_hash, 'class_hash is not
+//         equal',
 //     );
 // }
 
