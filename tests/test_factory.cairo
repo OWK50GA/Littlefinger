@@ -159,5 +159,7 @@ fn test_update_org_core_hash() {
 
     stop_cheat_caller_address(contract_address);
 
-    assert(dispatcher.get_org_core_class_hash() == new_org_core_class_hash, 'class_hash is not equal');
+    assert(
+        dispatcher.get_org_core_class_hash() == new_org_core_class_hash, 'class_hash is not equal'
+    );
 }
