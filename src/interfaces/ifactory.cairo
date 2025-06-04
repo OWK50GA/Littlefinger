@@ -52,8 +52,6 @@ pub trait IFactory<T> {
     fn get_vault_org_pair(self: @T, caller: ContractAddress) -> (ContractAddress, ContractAddress);
     fn update_vault_hash(ref self: T, vault_hash: ClassHash);
     fn update_core_hash(ref self: T, core_hash: ClassHash);
-    fn get_vault_class_hash(self: @T) -> ClassHash;
-    fn get_org_core_class_hash(self: @T) -> ClassHash;
     // fn get_vault_org_pairs(self: @T) -> Array<(ContractAddress, ContractAddress)>;
 
     // in the future, you can upgrade a deployed org core from here
