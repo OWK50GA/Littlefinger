@@ -51,18 +51,36 @@ fn setup_org_helper() -> (ContractAddress, IFactoryDispatcher, ContractAddress, 
     (contract_address, dispatcher, org_address, vault_address)
 }
 
+fn setup_upgradeable() -> IUpgradeableDispatcher {
+    let (contract_address, _, _, _) = setup_org_helper();
+    IUpgradeableDispatcher { contract_address }
+}
+
 #[test]
 fn test_upgrade() {
-    let contract_address = setup();
-    let new_class_hash = '0x01'.try_into().unwrap();
+    let dispatcher = setup_upgradeable();
+    let new_class_hash = declare("Core").unwrap().contract_class().class_hash;
 
-    let dispatcher = IUpgradeableDispatcher { contract_address };
 
-    start_cheat_caller_address(contract_address, owner());
+    start_cheat_caller_address(dispatcher.contract_address, owner());
 
-    dispatcher.upgrade(new_class_hash);
+    dispatcher.upgrade(*new_class_hash);
 
-    stop_cheat_caller_address(contract_address);
+    stop_cheat_caller_address(dispatcher.contract_address);
+}
+
+#[test]
+#[should_panic(expected: 'Caller is not the owner')]
+fn test_upgrade_panic() {
+    let dispatcher = setup_upgradeable();
+    let new_class_hash = declare("Core").unwrap().contract_class().class_hash;
+
+
+    start_cheat_caller_address(dispatcher.contract_address, 0.try_into().unwrap());
+
+    dispatcher.upgrade(*new_class_hash);
+
+    stop_cheat_caller_address(dispatcher.contract_address);
 }
 
 #[test]
@@ -88,12 +106,37 @@ fn test_get_deployed_vaults() {
     assert(dispatcher.get_deployed_vaults().len() == 1, 'vaults length is not 1');
 }
 
-
 #[test]
 fn test_get_deployed_orgs() {
     let (_, dispatcher, _, _) = setup_org_helper();
 
     assert(dispatcher.get_deployed_org_cores().len() == 1, 'orgs length is not 1');
+}
+
+#[test]
+#[should_panic(expected: 'Caller is not the owner')]
+fn test_update_org_core_hash_panic() {
+    let (contract_address, dispatcher, _, _) = setup_org_helper();
+    let new_org_core_class_hash = '0x01'.try_into().unwrap();
+
+    start_cheat_caller_address(contract_address, 0.try_into().unwrap());
+
+    dispatcher.update_core_hash(new_org_core_class_hash);
+
+    stop_cheat_caller_address(contract_address);
+}
+
+#[test]
+#[should_panic(expected: 'Caller is not the owner')]
+fn test_update_vault_hash_panic() {
+    let (contract_address, dispatcher, _, _) = setup_org_helper();
+    let new_org_core_class_hash = '0x01'.try_into().unwrap();
+
+    start_cheat_caller_address(contract_address, 0.try_into().unwrap());
+
+    dispatcher.update_vault_hash(new_org_core_class_hash);
+
+    stop_cheat_caller_address(contract_address);
 }
 
 // #[test]
@@ -159,28 +202,4 @@ fn test_get_deployed_orgs() {
 //     );
 // }
 
-#[test]
-#[should_panic(expected: 'Caller is not the owner')]
-fn test_update_org_core_hash_panic() {
-    let (contract_address, dispatcher, _, _) = setup_org_helper();
-    let new_org_core_class_hash = '0x01'.try_into().unwrap();
 
-    start_cheat_caller_address(contract_address, 0.try_into().unwrap());
-
-    dispatcher.update_core_hash(new_org_core_class_hash);
-
-    stop_cheat_caller_address(contract_address);
-}
-
-#[test]
-#[should_panic(expected: 'Caller is not the owner')]
-fn test_update_vault_hash_panic() {
-    let (contract_address, dispatcher, _, _) = setup_org_helper();
-    let new_org_core_class_hash = '0x01'.try_into().unwrap();
-
-    start_cheat_caller_address(contract_address, 0.try_into().unwrap());
-
-    dispatcher.update_vault_hash(new_org_core_class_hash);
-
-    stop_cheat_caller_address(contract_address);
-}
