@@ -1,8 +1,9 @@
 use littlefinger::interfaces::ifactory::{IFactoryDispatcher, IFactoryDispatcherTrait};
+use openzeppelin::upgrades::UpgradeableComponent;
 use openzeppelin::upgrades::interface::{IUpgradeableDispatcher, IUpgradeableDispatcherTrait};
 use snforge_std::{
-    ContractClassTrait, DeclareResultTrait, declare, start_cheat_caller_address,
-    stop_cheat_caller_address,
+    ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, EventSpyTrait, declare,
+    spy_events, start_cheat_caller_address, stop_cheat_caller_address,
 };
 use starknet::ContractAddress;
 
@@ -60,10 +61,26 @@ fn setup_upgradeable() -> IUpgradeableDispatcher {
 fn test_upgrade() {
     let dispatcher = setup_upgradeable();
     let new_class_hash = declare("Core").unwrap().contract_class().class_hash;
+    let mut contract_events = spy_events();
 
     start_cheat_caller_address(dispatcher.contract_address, owner());
 
     dispatcher.upgrade(*new_class_hash);
+
+    let upgrade_event = contract_events.get_events();
+    assert(upgrade_event.events.len() == 1, 'upgrade event is not 1');
+
+    contract_events
+        .assert_emitted(
+            @array![
+                (
+                    dispatcher.contract_address,
+                    UpgradeableComponent::Event::Upgraded(
+                        UpgradeableComponent::Upgraded { class_hash: *new_class_hash },
+                    ),
+                ),
+            ],
+        );
 
     stop_cheat_caller_address(dispatcher.contract_address);
 }
