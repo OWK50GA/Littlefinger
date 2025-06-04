@@ -61,7 +61,6 @@ fn test_upgrade() {
     let dispatcher = setup_upgradeable();
     let new_class_hash = declare("Core").unwrap().contract_class().class_hash;
 
-
     start_cheat_caller_address(dispatcher.contract_address, owner());
 
     dispatcher.upgrade(*new_class_hash);
@@ -74,7 +73,6 @@ fn test_upgrade() {
 fn test_upgrade_panic() {
     let dispatcher = setup_upgradeable();
     let new_class_hash = declare("Core").unwrap().contract_class().class_hash;
-
 
     start_cheat_caller_address(dispatcher.contract_address, 0.try_into().unwrap());
 
@@ -138,7 +136,6 @@ fn test_update_vault_hash_panic() {
 
     stop_cheat_caller_address(contract_address);
 }
-
 // #[test]
 // fn test_update_vault_hash() {
 //     let contract_address = setup();
